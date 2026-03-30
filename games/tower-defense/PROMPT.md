@@ -12,7 +12,8 @@ Kingdom Rush / Bloons TD6 수준 퀄리티의 타워 디펜스 게임을 만든�
 5. 브라우저에서 실행 테스트 — gstack `/qa` 또는 직접 `open index.html`
 6. 통과하면 `prd.json`에서 해당 항목 `passes: true`로 변경
 7. `AGENTS.md`에 이번 반복에서 배운 것 기록
-8. 다음 `passes: false` 항목으로 이동
+8. **git commit & push** — 변경된 파일 개별 `git add`, 커밋 메시지: `feat: [PRD항목ID] 완료 — 한줄설명`. 반드시 push까지.
+9. 다음 `passes: false` 항목으로 이동
 
 ## 기술 스택
 - Vanilla HTML/CSS/JS (빌드 도구 없음)
