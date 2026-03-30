@@ -56,6 +56,9 @@ function init() {
   });
 
   requestAnimationFrame(gameLoop);
+
+  // Show stage select on first load
+  showStageSelect();
 }
 
 document.addEventListener('DOMContentLoaded', init);

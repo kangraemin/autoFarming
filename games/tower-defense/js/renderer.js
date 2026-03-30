@@ -50,11 +50,13 @@ function drawBackground(ctx) {
   const W = state.canvas.width;
   const H = state.canvas.height;
 
-  // Base ground gradient
+  // Base ground gradient — use stage colors if available
+  const stage = (typeof STAGES !== 'undefined') ? STAGES[state.currentStageIndex] : null;
+  const colorA = stage ? stage.bgColorA : '#2d5016';
+  const colorB = stage ? stage.bgColorB : '#162d06';
   const grad = ctx.createLinearGradient(0, 0, 0, H);
-  grad.addColorStop(0, '#2d5016');
-  grad.addColorStop(0.5, '#1e3d0a');
-  grad.addColorStop(1, '#162d06');
+  grad.addColorStop(0, colorA);
+  grad.addColorStop(1, colorB);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, W, H);
 

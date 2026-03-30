@@ -317,3 +317,192 @@ body {
 }
 
 /* Grid highlight on canvas handled in renderer */
+
+/* ── Stage Select Screen ───────────────────────────────────────── */
+.stage-select-screen {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(160deg, #0d1b2a 0%, #1a0a2e 50%, #0a1a1a 100%);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-y: auto;
+}
+
+.stage-select-screen.hidden {
+  display: none;
+}
+
+.stage-select-content {
+  width: 100%;
+  max-width: 640px;
+  padding: 24px 16px 32px;
+}
+
+.stage-select-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.stage-select-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 0 20px rgba(233,69,96,0.6);
+  margin-bottom: 6px;
+}
+
+.stage-select-sub {
+  color: #888;
+  font-size: 14px;
+}
+
+.stage-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.stage-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+
+.stage-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(233,69,96,0.0), rgba(233,69,96,0.0));
+  transition: background 0.18s;
+  border-radius: 14px;
+  pointer-events: none;
+}
+
+.stage-card:not(.locked):hover {
+  border-color: rgba(233,69,96,0.5);
+  transform: translateX(4px);
+  background: rgba(255,255,255,0.07);
+}
+
+.stage-card:not(.locked):hover::before {
+  background: linear-gradient(90deg, rgba(233,69,96,0.06), transparent);
+}
+
+.stage-card.locked {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.stage-num {
+  font-size: 28px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.15);
+  min-width: 36px;
+  text-align: center;
+  line-height: 1;
+}
+
+.stage-card-body {
+  flex: 1;
+}
+
+.stage-card-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #eee;
+  margin-bottom: 2px;
+}
+
+.stage-card-hint {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.stage-card-diff {
+  font-size: 10px;
+  color: #e94560;
+  letter-spacing: 2px;
+  margin-bottom: 4px;
+}
+
+.stage-card-stars {
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+.star {
+  color: rgba(255,255,255,0.2);
+  transition: color 0.2s;
+}
+
+.star.earned {
+  text-shadow: 0 0 8px currentColor;
+}
+
+.stage-play-btn {
+  font-size: 20px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #e94560;
+  background: #e94560;
+  color: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.stage-play-btn:hover {
+  background: #c73a52;
+  transform: scale(1.1);
+}
+
+.stage-play-btn:active {
+  transform: scale(0.95);
+}
+
+.stage-lock {
+  font-size: 22px;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+/* Stage label in top bar */
+.stage-stat {
+  font-size: 11px;
+  color: #aaa;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage-select-top-btn {
+  background: none;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  color: #aaa;
+  font-size: 14px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.stage-select-top-btn:hover {
+  border-color: #e94560;
+  color: #eee;
+}

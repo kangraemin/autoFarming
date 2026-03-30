@@ -8,12 +8,25 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Stage Select Screen -->
+  <div id="stage-select" class="stage-select-screen hidden">
+    <div class="stage-select-content">
+      <div class="stage-select-header">
+        <h1 class="stage-select-title">⚔️ Tower Defense</h1>
+        <p class="stage-select-sub">스테이지를 선택하세요</p>
+      </div>
+      <div id="stage-grid" class="stage-grid"></div>
+    </div>
+  </div>
+
   <div id="app">
     <div class="top-bar">
       <div class="stat">💰 <span id="gold">100</span></div>
       <div class="stat">🌊 Wave <span id="wave">1</span></div>
       <div class="stat">❤️ <span id="lives">20</span></div>
       <div class="stat">⭐ <span id="score">0</span></div>
+      <div class="stat stage-stat"><span id="stage-label">-</span></div>
+      <button id="stage-select-btn" class="stage-select-top-btn" title="스테이지 선택">⚔️</button>
     </div>
 
     <canvas id="game-canvas"></canvas>
@@ -89,6 +102,7 @@
 
   <script src="js/config.js"></script>
   <script src="js/state.js"></script>
+  <script src="js/stages.js"></script>
   <script src="js/particles.js"></script>
   <script src="js/soul.js"></script>
   <script src="js/fusion.js"></script>

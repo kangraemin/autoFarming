@@ -47,7 +47,7 @@
     {
       "id": "gameplay-stages",
       "title": "스테이지 시스템 — 최소 5개 스테이지, 각각 다른 맵/경로. 클리어 시 별 1~3개 (남은 체력 기반). 스테이지 선택 화면.",
-      "passes": false,
+      "passes": true,
       "priority": 2
     },
     {

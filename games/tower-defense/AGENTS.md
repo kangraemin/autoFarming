@@ -16,6 +16,26 @@
 
 ## 반복 기록
 
+### 반복 4 — 2026-03-30 (gameplay-stages)
+
+**구현 내용:**
+- `js/stages.js` 신규: 5개 스테이지 정의(고블린 패스/늑대 협곡/골렘 황무지/드래곤 협곡/악마의 요새), `generatePathForStage()` — 지그재그/U자/S자/빗살/밀집 5가지 경로 형태, `getStageStars()` — 체력 기반 별 1~3개, `showStageSelect()` — 스테이지 선택 화면 렌더링, `isStageUnlocked()` / `saveStageProgress()` — localStorage 진행 저장
+- `js/path.js` 수정: `generatePath()` → `generatePathForStage(state.currentStageIndex)` 위임
+- `js/state.js` 수정: `currentStageIndex`, `phase: 'stageclear'` 추가, `initState()` 스테이지 시작골드 반영
+- `js/wave.js` 수정: `checkWaveEnd()`에서 스테이지 파면 완료 감지(`state.wave >= stage.waves`), `showStageClearOverlay()` 추가 (별점 표시 + 다음 스테이지/스테이지 선택 버튼)
+- `js/input.js` 수정: `showOverlay()` action 파라미터 추가, 오버레이 버튼 action별 분기(gameover→선택화면, nextstage→다음스테이지, stageselect→선택화면)
+- `js/game.js` 수정: init 시 `showStageSelect()` 호출
+- `js/renderer.js` 수정: `drawBackground()`에서 스테이지별 배경 색상(bgColorA/B) 반영
+- `index.html/css/style.css`: 스테이지 선택 화면 UI (카드 리스트, 난이도 점, 별, 잠금), 상단 바 스테이지 라벨 + ⚔️ 버튼
+
+**배운 것:**
+- `stages.js`는 `config.js`, `state.js` 이후, `path.js` 이전에 로드해야 함 (`CONFIG.COLS/ROWS` 사용)
+- `pathFromWaypoints()`는 수평이동 먼저 → 수직이동 순서로 연결 (다른 순서는 대각선이 생김)
+- `wp()` 비율 함수에서 `CONFIG.COLS - 1`을 곱해야 마지막 열까지 정확히 닿음 (단순 `* CONFIG.COLS`는 범위 초과)
+- 스테이지 클리어 후 "다음 스테이지" 버튼 외에도 "스테이지 선택" 두 번째 버튼 필요 — 동적으로 DOM에 추가
+- `showOverlay()` action 파라미터로 버튼 동작 분기 처리 (data-action 속성 활용)
+- 스테이지 진행도는 localStorage에 저장 — 세이브 시스템 PRD 항목 구현 전 임시 단독 저장
+
 ### 반복 3 — 2026-03-30 (gameplay-waves)
 
 **구현 내용:**

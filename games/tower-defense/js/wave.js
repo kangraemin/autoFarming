@@ -24,6 +24,7 @@ function generateWave(waveNum) {
   const enemies = [];
   const baseCount = 5 + waveNum * 2;
   const hpScale = 1 + (waveNum - 1) * 0.3;
+  const stageScale = STAGES[state.currentStageIndex].enemyScale || 1.0;
 
   for (let i = 0; i < baseCount; i++) {
     let type = 'basic';
@@ -33,7 +34,7 @@ function generateWave(waveNum) {
     if (waveNum % 5 === 0 && i === baseCount - 1) type = 'boss';
 
     const enemy = createEnemy(type, i * 0.6);
-    enemy.hp = Math.floor(enemy.hp * hpScale);
+    enemy.hp = Math.floor(enemy.hp * hpScale * stageScale);
     enemy.maxHp = enemy.hp;
     enemies.push(enemy);
   }
@@ -86,21 +87,65 @@ function checkWaveEnd() {
   const leaked = state.enemies.filter(e => e.reached).length;
   state.lives -= leaked;
 
+  state.enemies = [];
+  state.projectiles = [];
+
   if (state.lives <= 0) {
     state.lives = 0;
     state.phase = 'gameover';
-    showOverlay('Game Over', `You survived ${state.wave} waves!\nScore: ${state.score}`, 'Restart');
-  } else {
-    // Wave clear bonus
-    const bonus = state.wave * 20;
-    state.gold += bonus;
-    state.score += bonus;
-    state.phase = 'prep';
-    // Start countdown for next wave
-    state.prepCountdown = Math.max(10, 18 - state.wave * 0.5);
+    showOverlay('Game Over', `${state.wave} 웨이브 생존\n점수: ${state.score}`, '스테이지 선택', 'gameover');
+    updateUI();
+    return;
   }
 
-  state.enemies = [];
-  state.projectiles = [];
+  // Check stage completion
+  const stage = STAGES[state.currentStageIndex];
+  if (state.wave >= stage.waves) {
+    const stars = getStageStars(state.lives);
+    saveStageProgress(state.currentStageIndex, stars);
+    state.phase = 'stageclear';
+    showStageClearOverlay(stars);
+    updateUI();
+    return;
+  }
+
+  // Wave clear bonus
+  const bonus = state.wave * 20;
+  state.gold += bonus;
+  state.score += bonus;
+  state.phase = 'prep';
+  state.prepCountdown = Math.max(10, 18 - state.wave * 0.5);
   updateUI();
+}
+
+function showStageClearOverlay(stars) {
+  const stage = STAGES[state.currentStageIndex];
+  const starStr = '★'.repeat(stars) + '☆'.repeat(3 - stars);
+  const nextIdx = state.currentStageIndex + 1;
+  const hasNext = nextIdx < STAGES.length;
+
+  const title = `${stage.name} 클리어! ${starStr}`;
+  const text = `체력 ${state.lives}/20 · 점수 ${state.score}`;
+  const btnText = hasNext ? `다음 스테이지 →` : '스테이지 선택';
+  const btnAction = hasNext ? 'nextstage' : 'stageselect';
+
+  showOverlay(title, text, btnText, btnAction);
+  if (hasNext) {
+    // Show "Stage Select" as secondary button
+    const overlayContent = document.querySelector('.overlay-content');
+    if (!document.getElementById('overlay-back-btn')) {
+      const backBtn = document.createElement('button');
+      backBtn.id = 'overlay-back-btn';
+      backBtn.className = 'action-btn';
+      backBtn.style.background = '#555';
+      backBtn.style.marginTop = '8px';
+      backBtn.textContent = '스테이지 선택';
+      backBtn.addEventListener('click', () => {
+        document.getElementById('overlay').classList.add('hidden');
+        document.getElementById('overlay-back-btn').remove();
+        showStageSelect();
+      });
+      overlayContent.appendChild(backBtn);
+    }
+  }
 }

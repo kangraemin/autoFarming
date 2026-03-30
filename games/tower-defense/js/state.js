@@ -4,7 +4,7 @@ const state = {
   wave: 0,
   score: 0,
   speed: 1,
-  phase: 'prep', // 'prep' | 'wave' | 'gameover'
+  phase: 'prep', // 'prep' | 'wave' | 'gameover' | 'stageclear'
   selectedTower: 'arrow',
   towers: [],
   enemies: [],
@@ -28,10 +28,13 @@ const state = {
   // Wave prep
   prepCountdown: 0,   // seconds remaining in prep phase (0 = manual start only)
   prepDuration: 15,   // total prep time between waves
+  // Stage system
+  currentStageIndex: 0,  // which stage is being played
 };
 
 function initState() {
-  state.gold = 100;
+  const stage = (typeof STAGES !== 'undefined') ? STAGES[state.currentStageIndex] : null;
+  state.gold = stage ? stage.startGold : 100;
   state.lives = 20;
   state.wave = 0;
   state.score = 0;
@@ -48,5 +51,5 @@ function initState() {
   state.souls = {};
   state.soulDrops = [];
   state.prepCountdown = 0;
-  // codex is NOT reset — permanent collection progress
+  // codex and currentStageIndex are NOT reset — permanent progress
 }

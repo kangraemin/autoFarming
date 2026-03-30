@@ -131,6 +131,11 @@ function setupInput() {
     }
   });
 
+  // Stage select button (top bar)
+  document.getElementById('stage-select-btn').addEventListener('click', () => {
+    showStageSelect();
+  });
+
   // Codex button
   document.getElementById('codex-btn').addEventListener('click', () => {
     const modal = document.getElementById('codex-modal');
@@ -145,11 +150,24 @@ function setupInput() {
 
   // Overlay button
   document.getElementById('overlay-btn').addEventListener('click', () => {
+    const action = document.getElementById('overlay-btn').dataset.action;
     document.getElementById('overlay').classList.add('hidden');
-    if (state.phase === 'gameover') {
-      initState();
-      generatePath();
-      updateUI();
+    // Remove secondary back button if present
+    const backBtn = document.getElementById('overlay-back-btn');
+    if (backBtn) backBtn.remove();
+
+    if (action === 'gameover' || action === 'stageselect') {
+      showStageSelect();
+    } else if (action === 'nextstage') {
+      const nextIdx = state.currentStageIndex + 1;
+      if (nextIdx < STAGES.length && isStageUnlocked(nextIdx)) {
+        startStage(nextIdx);
+      } else {
+        showStageSelect();
+      }
+    } else {
+      // Legacy: restart current stage
+      startStage(state.currentStageIndex);
     }
   });
 }
@@ -199,10 +217,12 @@ function closePopup() {
   document.getElementById('upgrade-popup').classList.add('hidden');
 }
 
-function showOverlay(title, text, btnText) {
+function showOverlay(title, text, btnText, action) {
   document.getElementById('overlay-title').textContent = title;
   document.getElementById('overlay-text').textContent = text;
-  document.getElementById('overlay-btn').textContent = btnText;
+  const btn = document.getElementById('overlay-btn');
+  btn.textContent = btnText;
+  btn.dataset.action = action || '';
   document.getElementById('overlay').classList.remove('hidden');
 }
 
