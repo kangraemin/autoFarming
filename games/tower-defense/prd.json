@@ -1,0 +1,150 @@
+{
+  "project": "Idle Tower Defense",
+  "description": "Kingdom Rush 수준 퀄리티의 웹/모바일 타워 디펜스 게임. 핵심 차별화: Tower Fusion — 적을 잡으면 소울을 드롭하고, 타워에 합성하면 적의 능력을 흡수하여 진화. '적을 잡을수록 타워가 강해진다.'",
+  "stories": [
+    {
+      "id": "visual-map",
+      "title": "맵 비주얼 — 그라데이션 배경, 타일맵, 나무/돌/풀 장식 오브젝트, 경로에 깔린 흙길 텍스처",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "visual-towers",
+      "title": "타워 비주얼 — 각 타워 타입별 고유 그래픽(캔버스 드로잉), 레벨업 시 외형 변화, 사거리 원 표시",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "visual-enemies",
+      "title": "적 비주얼 — 적 타입별 고유 캐릭터 그래픽, 걷기 애니메이션(프레임 기반), HP바, 속성 아이콘",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "fx-shoot",
+      "title": "발사 이펙트 — 타워 발사 시 머즐 플래시, 투사체 꼬리 트레일, 캐논은 연기",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "fx-hit",
+      "title": "타격 이펙트 — 적 피격 시 파티클 폭발, 처치 시 큰 파티클 + 골드 팝업 텍스트 (+10g), 보스 처치 시 화면 흔들림",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "fx-particles",
+      "title": "파티클 시스템 — 범용 파티클 엔진. 폭발, 연기, 스파크, 얼음 조각, 번개 등",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "gameplay-waves",
+      "title": "웨이브 시스템 — 웨이브 사이 준비 타임(카운트다운), 다음 웨이브 적 미리보기, 조기 시작 보너스 골드",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "gameplay-stages",
+      "title": "스테이지 시스템 — 최소 5개 스테이지, 각각 다른 맵/경로. 클리어 시 별 1~3개 (남은 체력 기반). 스테이지 선택 화면.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "gameplay-skills",
+      "title": "액티브 스킬 — 최소 3개: 폭격(범위 데미지), 동결(전체 슬로우), 치유(체력 회복). 쿨다운 UI.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "gameplay-synergy",
+      "title": "타워 시너지 — 인접 타워 조합 보너스. 예: 불+얼음=증기폭발(범위 데미지), 번개+물=감전(지속 데미지). 시너지 발동 시 시각 이펙트.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "gameplay-unique",
+      "title": "차별화 요소: Tower Fusion — 적 처치 시 '소울' 드롭. 소울을 타워에 먹이면 적의 속성 흡수하여 타워 진화. 불몹 소울+Arrow=Fire Arrow(화상DoT), 얼음몹 소울+Cannon=Frost Bomb(범위슬로우), 번개몹 소울+Ice=Thunder Ice(감전+슬로우), 보스 소울=변이 타워(완전히 새 형태). 소울 인벤토리 UI, 타워에 드래그앤드롭으로 합성, 합성 시 이펙트 연출. 최소 8가지 합성 조합.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "gameplay-strength",
+      "title": "확실한 강점: '적을 잡을수록 타워가 진화한다' — 소울 수집+합성의 중독성. 새 조합 발견 시 도감에 등록되는 수집 시스템. 합성 시 화려한 진화 연출(타워 변신 애니메이션+파티클 폭발). 이 부분만큼은 확실히 폴리싱.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "sound-sfx",
+      "title": "효과음 — Web Audio API로 절차적 생성. 타워 발사, 적 피격, 적 처치, 골드 획득, 웨이브 시작, 보스 등장, 스킬 사용, UI 클릭 소리.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "sound-bgm",
+      "title": "배경음악 — 절차적 생성 또는 무료 BGM. 준비 페이즈(차분), 웨이브 중(긴박), 보스(웅장). 볼륨 조절 + 뮤트 버튼.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "ui-main-menu",
+      "title": "메인 메뉴 — 타이틀 화면, 스테이지 선택, 설정(사운드/진동). 깔끔한 UI.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "ui-hud",
+      "title": "인게임 HUD — 골드, 웨이브, 체력, 점수를 보기 좋게. 타워 선택 패널 개선. 업그레이드 팝업 개선.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "ui-tutorial",
+      "title": "튜토리얼 — 첫 플레이 시 단계별 안내. 타워 배치 → 웨이브 시작 → 업그레이드 순서. 강제가 아닌 하이라이트 방식.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "progression",
+      "title": "프로그레션 — 스테이지 클리어로 별 획득 → 새 타워/스킬 언락. 영구 업그레이드 (프레스티지). 플레이어가 성장하는 느낌.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "monetization",
+      "title": "과금 요소 — 보석(프리미엄 재화), 광고 시청으로 보석 획득, 보석으로 스킨/특수 타워 구매, 광고 제거 IAP. AdMob 배너+보상형 광고 자리 확보.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "save-system",
+      "title": "세이브 — localStorage로 진행 상황 저장. 스테이지 클리어 기록, 별, 보석, 언락된 타워/스킬.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "mobile-touch",
+      "title": "모바일 터치 — 터치 이벤트 최적화. 핀치 줌, 드래그 스크롤(맵이 클 때). 버튼 크기 최소 44px. 햅틱 피드백.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "mobile-app",
+      "title": "Capacitor 빌드 — Android/iOS 빌드 가능. capacitor.config.json, 앱 아이콘, 스플래시 스크린 세팅.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "performance",
+      "title": "퍼포먼스 — 60fps 유지. 적 50마리 + 타워 20개 + 투사체 30개 동시에 돌아가도 렉 없음. 오브젝트 풀링.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "polish",
+      "title": "폴리싱 — 화면 전환 애니메이션, 버튼 호버/클릭 피드백, 로딩 화면, favicon, OG 이미지, 메타 태그.",
+      "passes": false,
+      "priority": 3
+    }
+  ]
+}

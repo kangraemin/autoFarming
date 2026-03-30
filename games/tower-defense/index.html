@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Idle Tower Defense</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <div class="top-bar">
+      <div class="stat">💰 <span id="gold">100</span></div>
+      <div class="stat">🌊 Wave <span id="wave">1</span></div>
+      <div class="stat">❤️ <span id="lives">20</span></div>
+      <div class="stat">⭐ <span id="score">0</span></div>
+    </div>
+
+    <canvas id="game-canvas"></canvas>
+
+    <div class="bottom-panel">
+      <div class="tower-shop" id="tower-shop">
+        <button class="tower-btn selected" data-tower="arrow" data-cost="50">
+          <span class="tower-icon">🏹</span>
+          <span class="tower-name">Arrow</span>
+          <span class="tower-cost">50g</span>
+        </button>
+        <button class="tower-btn" data-tower="cannon" data-cost="100">
+          <span class="tower-icon">💣</span>
+          <span class="tower-name">Cannon</span>
+          <span class="tower-cost">100g</span>
+        </button>
+        <button class="tower-btn" data-tower="ice" data-cost="75">
+          <span class="tower-icon">❄️</span>
+          <span class="tower-name">Ice</span>
+          <span class="tower-cost">75g</span>
+        </button>
+        <button class="tower-btn" data-tower="lightning" data-cost="150">
+          <span class="tower-icon">⚡</span>
+          <span class="tower-name">Lightning</span>
+          <span class="tower-cost">150g</span>
+        </button>
+      </div>
+      <div class="controls">
+        <button id="start-wave-btn" class="action-btn">▶ Start Wave</button>
+        <button id="speed-btn" class="action-btn">⏩ 1x</button>
+      </div>
+    </div>
+
+    <!-- Tower upgrade popup -->
+    <div id="upgrade-popup" class="popup hidden">
+      <div class="popup-content">
+        <h3 id="popup-title">Tower</h3>
+        <p id="popup-stats"></p>
+        <button id="upgrade-btn" class="action-btn">⬆ Upgrade</button>
+        <button id="sell-btn" class="action-btn sell">🗑 Sell</button>
+        <button id="close-popup" class="action-btn">✕</button>
+      </div>
+    </div>
+
+    <!-- Game over / wave clear -->
+    <div id="overlay" class="overlay hidden">
+      <div class="overlay-content">
+        <h2 id="overlay-title"></h2>
+        <p id="overlay-text"></p>
+        <button id="overlay-btn" class="action-btn">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/state.js"></script>
+  <script src="js/path.js"></script>
+  <script src="js/enemy.js"></script>
+  <script src="js/tower.js"></script>
+  <script src="js/projectile.js"></script>
+  <script src="js/wave.js"></script>
+  <script src="js/renderer.js"></script>
+  <script src="js/input.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
