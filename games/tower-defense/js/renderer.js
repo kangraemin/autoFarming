@@ -887,6 +887,44 @@ function render() {
   drawParticles(ctx);
   drawFloatingTexts(ctx);
   drawPrepUI(ctx);
+  drawAirstrikeTargeting(ctx);
 
+  ctx.restore();
+}
+
+function drawAirstrikeTargeting(ctx) {
+  if (state.targetingSkill !== 'airstrike') return;
+  if (state.hoverCol == null || state.hoverRow == null) return;
+
+  const gs = CONFIG.GRID_SIZE;
+  const cx = state.hoverCol * gs + gs / 2;
+  const cy = state.hoverRow * gs + gs / 2;
+  const radius = gs * 2.5;
+
+  // Pulsing targeting ring
+  const pulse = 0.7 + 0.3 * Math.sin(state.gameTime * 6);
+
+  ctx.save();
+  ctx.globalAlpha = 0.55 * pulse;
+  ctx.strokeStyle = '#ff6600';
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([6, 4]);
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Fill tint
+  ctx.globalAlpha = 0.12 * pulse;
+  ctx.fillStyle = '#ff6600';
+  ctx.fill();
+
+  // Crosshair lines
+  ctx.globalAlpha = 0.7 * pulse;
+  ctx.setLineDash([]);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(cx - radius * 0.4, cy); ctx.lineTo(cx + radius * 0.4, cy);
+  ctx.moveTo(cx, cy - radius * 0.4); ctx.lineTo(cx, cy + radius * 0.4);
+  ctx.stroke();
   ctx.restore();
 }

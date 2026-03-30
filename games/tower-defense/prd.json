@@ -53,7 +53,7 @@
     {
       "id": "gameplay-skills",
       "title": "액티브 스킬 — 최소 3개: 폭격(범위 데미지), 동결(전체 슬로우), 치유(체력 회복). 쿨다운 UI.",
-      "passes": false,
+      "passes": true,
       "priority": 2
     },
     {

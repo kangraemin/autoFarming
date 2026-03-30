@@ -30,6 +30,9 @@ const state = {
   prepDuration: 15,   // total prep time between waves
   // Stage system
   currentStageIndex: 0,  // which stage is being played
+  // Active skills
+  skills: [],         // [{ id, cooldown }]
+  targetingSkill: null, // skill id waiting for canvas click target
 };
 
 function initState() {
@@ -51,5 +54,7 @@ function initState() {
   state.souls = {};
   state.soulDrops = [];
   state.prepCountdown = 0;
+  state.targetingSkill = null;
+  if (typeof initSkills === 'function') initSkills();
   // codex and currentStageIndex are NOT reset — permanent progress
 }

@@ -16,6 +16,24 @@
 
 ## 반복 기록
 
+### 반복 5 — 2026-03-30 (gameplay-skills)
+
+**구현 내용:**
+- `js/skills.js` 신규: `SKILL_DEFS` 3개 정의 (airstrike/freeze/heal), `initSkills()`, `updateSkillCooldowns(rawDt)`, `activateSkill(id, x, y)`, `doAirstrike()` / `doFreeze()` / `doHeal()`, `updateSkillUI()` — 쿨다운 오버레이 높이 & 텍스트 갱신
+- `js/state.js` 수정: `skills: []`, `targetingSkill: null` 추가, `initState()`에서 `initSkills()` 호출
+- `index.html` 수정: `.skills-bar` HTML (스킬 버튼 3개, 각각 `.skill-cd-overlay` + `.skill-cd-text`) 추가, `skills.js` 스크립트 태그
+- `css/style.css` 수정: `.skills-bar`, `.skill-btn`, `.skill-btn.ready/.on-cooldown/.targeting`, `.skill-cd-overlay`, `body.targeting-mode #game-canvas` 스타일
+- `js/game.js` 수정: 게임루프에서 `updateSkillCooldowns(rawDt)` + `updateSkillUI()` 호출
+- `js/input.js` 수정: skills-bar 클릭 → 타겟 필요 스킬은 targeting-mode, 즉시 스킬은 `activateSkill()` 직접 호출; 캔버스 클릭/터치에서 `targetingSkill` 처리 추가
+- `js/renderer.js` 수정: `drawAirstrikeTargeting()` 추가 — 마우스 hover 위치에 점선 원 + 크로스헤어 + 펄스 애니메이션
+
+**배운 것:**
+- 쿨다운 오버레이는 `height: 0%`→`100%` (bottom에서 채움) 방식이 `clip-path`보다 구현 단순
+- `skills.js`는 `particles.js` 이후, `soul.js` 이전에 로드 (`spawnExplosion`, `createParticle` 의존)
+- targeting mode는 `document.body.classList`로 CSS 클래스 토글 → canvas cursor 변경 (`body.targeting-mode #game-canvas { cursor: crosshair }`)
+- `updateSkillUI()`는 매 프레임 호출해도 부담 없음 — DOM 조작이 최소화되어 있어서
+- `initSkills()`는 `initState()`에서 호출 → 게임 재시작 시 쿨다운 리셋 자동 처리
+
 ### 반복 4 — 2026-03-30 (gameplay-stages)
 
 **구현 내용:**

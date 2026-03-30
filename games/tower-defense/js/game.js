@@ -30,6 +30,8 @@ function gameLoop(timestamp) {
   // Particles and soul drops always update at real speed
   updateParticles(rawDt);
   updateSoulDrops(rawDt);
+  updateSkillCooldowns(rawDt);
+  updateSkillUI();
 
   render();
 

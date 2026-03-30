@@ -11,11 +11,20 @@ function setupInput() {
     closePopup();
   });
 
-  // Canvas click — collect soul, place tower or select existing
+  // Canvas click — targeting skill, collect soul, place tower or select existing
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // Airstrike targeting mode — deliver skill on click
+    if (state.targetingSkill) {
+      const skillId = state.targetingSkill;
+      state.targetingSkill = null;
+      document.body.classList.remove('targeting-mode');
+      activateSkill(skillId, x, y);
+      return;
+    }
 
     // Check if clicking a soul drop (priority over tower placement)
     for (const drop of state.soulDrops) {
@@ -63,6 +72,15 @@ function setupInput() {
     const rect = canvas.getBoundingClientRect();
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
+
+    // Airstrike targeting mode
+    if (state.targetingSkill) {
+      const skillId = state.targetingSkill;
+      state.targetingSkill = null;
+      document.body.classList.remove('targeting-mode');
+      activateSkill(skillId, x, y);
+      return;
+    }
 
     // Check soul orbs first
     for (const drop of state.soulDrops) {
@@ -128,6 +146,31 @@ function setupInput() {
     if (success) {
       showUpgradePopup(state.selectedPlacedTower); // refresh popup
       updateUI();
+    }
+  });
+
+  // Skills bar
+  document.getElementById('skills-bar').addEventListener('click', (e) => {
+    const btn = e.target.closest('.skill-btn');
+    if (!btn) return;
+    const skillId = btn.dataset.skill;
+    const def = SKILL_DEFS[skillId];
+    if (!def) return;
+
+    if (!isSkillReady(skillId)) return; // on cooldown
+
+    if (def.requiresTarget) {
+      // Toggle targeting mode
+      if (state.targetingSkill === skillId) {
+        state.targetingSkill = null;
+        document.body.classList.remove('targeting-mode');
+      } else {
+        state.targetingSkill = skillId;
+        document.body.classList.add('targeting-mode');
+      }
+      updateSkillUI();
+    } else {
+      activateSkill(skillId, 0, 0);
     }
   });
 

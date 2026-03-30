@@ -41,6 +41,29 @@
         <button id="codex-btn" class="codex-btn" title="합성 도감">📖 도감</button>
       </div>
 
+      <!-- Active Skills Bar -->
+      <div class="skills-bar" id="skills-bar">
+        <span class="skills-label">⚡ 스킬</span>
+        <button id="skill-btn-airstrike" class="skill-btn ready" data-skill="airstrike" title="폭격 — 범위 폭격 (쿨다운 20s)">
+          <span class="skill-icon">💥</span>
+          <span class="skill-name">폭격</span>
+          <div class="skill-cd-overlay"></div>
+          <span class="skill-cd-text"></span>
+        </button>
+        <button id="skill-btn-freeze" class="skill-btn ready" data-skill="freeze" title="동결 — 전체 슬로우 4초 (쿨다운 25s)">
+          <span class="skill-icon">❄️</span>
+          <span class="skill-name">동결</span>
+          <div class="skill-cd-overlay"></div>
+          <span class="skill-cd-text"></span>
+        </button>
+        <button id="skill-btn-heal" class="skill-btn ready" data-skill="heal" title="치유 — 체력 +3 (쿨다운 30s)">
+          <span class="skill-icon">💚</span>
+          <span class="skill-name">치유</span>
+          <div class="skill-cd-overlay"></div>
+          <span class="skill-cd-text"></span>
+        </button>
+      </div>
+
       <div class="tower-shop" id="tower-shop">
         <button class="tower-btn selected" data-tower="arrow" data-cost="50">
           <span class="tower-icon">🏹</span>
@@ -104,6 +127,7 @@
   <script src="js/state.js"></script>
   <script src="js/stages.js"></script>
   <script src="js/particles.js"></script>
+  <script src="js/skills.js"></script>
   <script src="js/soul.js"></script>
   <script src="js/fusion.js"></script>
   <script src="js/path.js"></script>
