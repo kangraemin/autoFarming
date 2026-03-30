@@ -109,6 +109,9 @@ function updateProjectile(proj, dt) {
       });
     }
 
+    // Synergy hit effects
+    applySynergyHit(proj, target);
+
     // Fused special on hit
     if (proj.fusedSpec && target.alive !== false) {
       applyFusedHit(proj, target);
@@ -164,6 +167,64 @@ function applyFusedHit(proj, target) {
       spawnExplosion(target.x, target.y, '#ffaa00', 8);
       break;
     }
+  }
+}
+
+// Apply synergy-specific hit effects
+function applySynergyHit(proj, target) {
+  if (!target || !target.alive) return;
+
+  // electro_freeze: lightning chains to ALL slowed/frozen enemies nearby
+  if (proj.synergyId === 'electro_freeze' && proj.towerType === 'lightning') {
+    const chainRange = 3.5 * CONFIG.GRID_SIZE;
+    for (const enemy of state.enemies) {
+      if (enemy === target || !enemy.alive || enemy.delay > 0) continue;
+      if (enemy.slowTimer <= 0) continue; // only slowed/frozen enemies
+      const dx = enemy.x - target.x;
+      const dy = enemy.y - target.y;
+      if (Math.sqrt(dx * dx + dy * dy) <= chainRange) {
+        hitEnemy(enemy, Math.floor(proj.damage * 0.45), false, '#aaeeff');
+        spawnExplosion(enemy.x, enemy.y, '#aaeeff', 5);
+      }
+    }
+  }
+
+  // steam_burst: extra steam cloud on cannon explosion
+  if (proj.synergyId === 'steam_burst' && proj.towerType === 'cannon') {
+    for (let i = 0; i < 6; i++) {
+      createParticle(
+        target.x + (Math.random() - 0.5) * 30,
+        target.y + (Math.random() - 0.5) * 30,
+        (Math.random() - 0.5) * 35,
+        -20 - Math.random() * 35,
+        '#aaddff',
+        0.7 + Math.random() * 0.5,
+        7 + Math.random() * 5
+      );
+    }
+    spawnExplosion(target.x, target.y, '#88ddff', 6);
+  }
+
+  const ids = proj.synergyIds || [];
+
+  // thunder_bomb: lightning DoT on cannon hit
+  if (ids.includes('thunder_bomb') && proj.towerType === 'cannon') {
+    if (!target.dots) target.dots = [];
+    target.dots = target.dots.filter(d => d.sourceId !== 'thunder_bomb');
+    target.dots.push({
+      sourceId: 'thunder_bomb',
+      damage: 6,
+      duration: 1.5,
+      interval: 0.35,
+      timer: 0.35,
+      color: '#ffcc33',
+    });
+    spawnExplosion(target.x, target.y, '#ffcc33', 5);
+  }
+
+  // explosive_arrow: small visual burst (splash already handled by proj.splash)
+  if (ids.includes('explosive_arrow') && proj.towerType === 'arrow') {
+    spawnExplosion(target.x, target.y, '#ff8844', 6);
   }
 }
 

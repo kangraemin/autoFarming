@@ -128,7 +128,13 @@ function updateTower(tower, dt) {
   const target = findTarget(tower);
   if (!target) return;
 
-  tower.fireCooldown = 1 / tower.fireRate;
+  // Apply synergy fire-rate bonus for storm_arrow (arrow + lightning)
+  let effectiveFireRate = tower.fireRate;
+  if (tower.activeSynergies?.includes('storm_arrow') &&
+      (tower.type === 'arrow' || tower.fusedSpec?.baseType === 'arrow')) {
+    effectiveFireRate *= 1.4;
+  }
+  tower.fireCooldown = 1 / effectiveFireRate;
 
   // Use base tower template for projectile properties (color, splash, slow, chain)
   const baseTowerType = tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
@@ -144,6 +150,8 @@ function updateTower(tower, dt) {
     effectiveTemplate = { ...template, chain: (template.chain || 0) + extra };
   }
 
-  // Create projectile
-  state.projectiles.push(createProjectile(tower, target, effectiveTemplate));
+  // Create projectile, then apply synergy bonuses
+  const proj = createProjectile(tower, target, effectiveTemplate);
+  if (typeof applySynergyToProjectile === 'function') applySynergyToProjectile(proj, tower);
+  state.projectiles.push(proj);
 }

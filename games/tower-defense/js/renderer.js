@@ -196,6 +196,9 @@ function drawTowers(ctx) {
     ctx.save();
     ctx.translate(x, y);
 
+    // Synergy aura (drawn behind fused aura)
+    drawSynergyAura(ctx, tower, gs);
+
     // Fused tower glow aura (drawn behind tower)
     if (tower.fusedSpec) {
       const fc = tower.fusedSpec.color;
@@ -880,6 +883,7 @@ function render() {
   drawPath(ctx);
   drawDecorations(ctx);
   drawHoverPreview(ctx);
+  drawSynergyConnections(ctx);
   drawTowers(ctx);
   drawSoulDrops(ctx);
   drawEnemies(ctx);

@@ -27,6 +27,9 @@ function gameLoop(timestamp) {
     updatePrepCountdown(rawDt);
   }
 
+  // Recompute tower synergies every frame (cheap: O(towers²), max ~20 towers)
+  if (typeof computeSynergies === 'function') computeSynergies();
+
   // Particles and soul drops always update at real speed
   updateParticles(rawDt);
   updateSoulDrops(rawDt);

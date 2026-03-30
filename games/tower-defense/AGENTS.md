@@ -16,6 +16,25 @@
 
 ## 반복 기록
 
+### 반복 6 — 2026-03-30 (gameplay-synergy)
+
+**구현 내용:**
+- `js/synergy.js` 신규: `SYNERGY_DEFS` 6개 정의(증기폭발/감전빙결/폭풍화살/번개포탄/서리화살/폭발화살), `computeSynergies()` — 프레임마다 O(n²) 쌍 계산, `applySynergyToProjectile()` — 발사체에 시너지 속성 주입, `drawSynergyConnections()` — 애니메이션 점선 연결, `drawSynergyAura()` — 타워 시너지 오라
+- `js/state.js` 수정: `synergies: []`, `synergyNotified: new Set()` 추가, `initState()`에서 리셋
+- `js/tower.js` 수정: `storm_arrow` 시너지 시 `effectiveFireRate *= 1.4`, `createProjectile` 후 `applySynergyToProjectile` 호출
+- `js/projectile.js` 수정: `applySynergyHit()` 추가 — `electro_freeze`(슬로우 적 전체 연쇄), `steam_burst`(증기 파티클), `thunder_bomb`(번개 DoT), `explosive_arrow`(시각 버스트)
+- `js/renderer.js` 수정: `render()`에서 `drawSynergyConnections()` 호출(타워 그리기 전), `drawTowers()`에서 `drawSynergyAura()` 호출
+- `js/game.js` 수정: 게임루프에서 `computeSynergies()` 매 프레임 호출
+- `index.html` 수정: `synergy.js` 스크립트 추가 (fusion.js 이후, path.js 이전)
+
+**배운 것:**
+- `synergy.js`는 `particles.js`(spawnExplosion 의존), `fusion.js` 이후, `path.js` 이전에 로드
+- 매 프레임 O(n²) 시너지 계산은 타워 최대 20개 기준 완전히 허용 가능
+- 신규 시너지 알림은 `state.synergyNotified Set`으로 중복 방지 — `initState()`에서 리셋
+- `proj.synergyIds` 배열로 복수 시너지 동시 적용 (thunder_bomb + explosive_arrow on cannon+lightning+arrow)
+- 발사체에 `synergyId`(단일 주 효과)와 `synergyIds`(복수 부가효과) 두 필드로 분리 관리
+- 시너지 연결선은 `setLineDash` + `lineDashOffset` 애니메이션으로 흐르는 효과
+
 ### 반복 5 — 2026-03-30 (gameplay-skills)
 
 **구현 내용:**

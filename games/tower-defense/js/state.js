@@ -33,6 +33,9 @@ const state = {
   // Active skills
   skills: [],         // [{ id, cooldown }]
   targetingSkill: null, // skill id waiting for canvas click target
+  // Tower synergies
+  synergies: [],      // [{ a, b, def, key }] — active pairs this frame
+  synergyNotified: null, // Set of keys already announced (init lazily)
 };
 
 function initState() {
@@ -55,6 +58,8 @@ function initState() {
   state.soulDrops = [];
   state.prepCountdown = 0;
   state.targetingSkill = null;
+  state.synergies = [];
+  state.synergyNotified = new Set();
   if (typeof initSkills === 'function') initSkills();
   // codex and currentStageIndex are NOT reset — permanent progress
 }

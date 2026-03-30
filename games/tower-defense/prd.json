@@ -59,7 +59,7 @@
     {
       "id": "gameplay-synergy",
       "title": "타워 시너지 — 인접 타워 조합 보너스. 예: 불+얼음=증기폭발(범위 데미지), 번개+물=감전(지속 데미지). 시너지 발동 시 시각 이펙트.",
-      "passes": false,
+      "passes": true,
       "priority": 2
     },
     {
