@@ -37,6 +37,7 @@ function tryDropSoul(enemy) {
 function collectSoul(drop) {
   drop.alive = false;
   state.souls[drop.type] = (state.souls[drop.type] || 0) + 1;
+  if (typeof playSoulCollect === 'function') playSoulCollect();
 
   const info = SOUL_TYPES[drop.type];
 

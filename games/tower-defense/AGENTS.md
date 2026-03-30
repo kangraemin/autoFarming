@@ -16,6 +16,27 @@
 
 ## 반복 기록
 
+### 반복 7 — 2026-03-31 (sound-sfx)
+
+**구현 내용:**
+- `js/audio.js` 신규: Web Audio API 절차적 효과음 시스템. `getACtx()` (싱글턴 + 브라우저 autoplay resume), `playTone()` / `playNoiseBurst()` / `playFreqSweep()` 유틸리티, 타워별 발사음(arrow/cannon/ice/lightning), 피격/처치/보스처치음, 골드획득, 웨이브시작, 보스등장, 스킬3종(airstrike/freeze/heal), UI클릭, 타워배치, 업그레이드, 소울수집, 합성 효과음
+- `js/enemy.js`: `hitEnemy()`에서 `playEnemyHit()`, `playEnemyDeath()`, `playBossDeath()`, `playGoldGain()` 호출
+- `js/wave.js`: `startWave()`에서 `playWaveStart()`, 보스웨이브 500ms 후 `playBossAppear()` 호출
+- `js/skills.js`: `activateSkill()`에서 `playSkill(id)` 호출
+- `js/tower.js`: `placeTower()`에서 `playTowerPlace()`, `upgradeTower()`에서 `playUpgrade()` 호출
+- `js/soul.js`: `collectSoul()`에서 `playSoulCollect()` 호출
+- `js/fusion.js`: `performFusion()`에서 `playFusion()` 호출
+- `js/projectile.js`: `createProjectile()`에서 `playTowerFire(towerType)` 호출
+- `js/input.js`: 타워샵 클릭에서 `playUIClick()` 호출
+- `index.html`: `audio.js` 스크립트 추가 (state.js 이후, stages.js 이전)
+
+**배운 것:**
+- Web Audio API `AudioContext`는 브라우저 autoplay policy 때문에 `suspended` 상태로 시작 → `_actx.resume()` 매번 호출 필요
+- 노이즈 버퍼는 재사용 (`_noiseBuffer` 캐시) — 매번 새로 생성하면 GC 부담
+- `exponentialRampToValueAtTime(0)` 금지 — 0으로 지수 ramp 불가, `0.0001` 사용
+- 효과음 호출 빈도가 높은 경우(발사음) 매 발사마다 새 OscillatorNode 생성이 표준 패턴 — 재사용 불필요
+- `typeof playFn === 'function'` 가드로 audio.js 로드 전 호출 방어
+
 ### 반복 6 — 2026-03-30 (gameplay-synergy)
 
 **구현 내용:**

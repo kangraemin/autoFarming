@@ -9,6 +9,7 @@ function setupInput() {
     btn.classList.add('selected');
     state.selectedTower = btn.dataset.tower;
     closePopup();
+    if (typeof playUIClick === 'function') playUIClick();
   });
 
   // Canvas click — targeting skill, collect soul, place tower or select existing

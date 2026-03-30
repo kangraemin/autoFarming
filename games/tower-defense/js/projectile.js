@@ -8,6 +8,8 @@ function createProjectile(tower, target, template) {
   const muzzleY = tower.y + Math.sin(angle) * CONFIG.GRID_SIZE * 0.3;
   spawnMuzzleFlash(muzzleX, muzzleY, template.projectileColor);
   if (tower.type === 'cannon') spawnSmoke(muzzleX, muzzleY);
+  // Sound
+  if (typeof playTowerFire === 'function') playTowerFire(tower.fusedSpec ? tower.fusedSpec.baseType : tower.type);
 
   // Track barrel angle for cannon drawing
   tower.barrelAngle = angle;

@@ -26,6 +26,7 @@ function placeTower(type, col, row) {
   const tower = createTower(type, col, row);
   state.towers.push(tower);
   state.gridOccupied.add(`${col},${row}`);
+  if (typeof playTowerPlace === 'function') playTowerPlace();
   return true;
 }
 
@@ -39,6 +40,7 @@ function upgradeTower(tower) {
   tower.damage = template.upgradeDamage(tower.level);
   tower.range += 0.2;
   tower.fireRate *= 1.1;
+  if (typeof playUpgrade === 'function') playUpgrade();
   return true;
 }
 

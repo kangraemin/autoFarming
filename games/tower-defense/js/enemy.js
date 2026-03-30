@@ -92,6 +92,7 @@ function hitEnemy(enemy, damage, isMajorHit, hitColor) {
 
   if (isMajorHit) {
     spawnHitSpark(enemy.x, enemy.y, hitColor || enemy.color);
+    if (typeof playEnemyHit === 'function') playEnemyHit();
   }
 
   if (enemy.hp <= 0) {
@@ -99,13 +100,16 @@ function hitEnemy(enemy, damage, isMajorHit, hitColor) {
     state.gold += enemy.reward;
     state.score += enemy.reward;
 
-    // Death FX
+    // Death FX + sound
     if (enemy.type === 'boss') {
       spawnBossKillExplosion(enemy.x, enemy.y);
+      if (typeof playBossDeath === 'function') playBossDeath();
     } else {
       spawnKillExplosion(enemy.x, enemy.y, enemy.color);
+      if (typeof playEnemyDeath === 'function') playEnemyDeath();
     }
     spawnGoldPopup(enemy.x, enemy.y, enemy.reward);
+    if (typeof playGoldGain === 'function') playGoldGain();
 
     // Soul drop
     tryDropSoul(enemy);

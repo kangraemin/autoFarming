@@ -77,7 +77,7 @@
     {
       "id": "sound-sfx",
       "title": "효과음 — Web Audio API로 절차적 생성. 타워 발사, 적 피격, 적 처치, 골드 획득, 웨이브 시작, 보스 등장, 스킬 사용, UI 클릭 소리.",
-      "passes": false,
+      "passes": true,
       "priority": 2
     },
     {

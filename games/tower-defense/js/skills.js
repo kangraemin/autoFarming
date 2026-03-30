@@ -75,6 +75,7 @@ function activateSkill(id, targetX, targetY) {
 
   sk.cooldown = def.maxCooldown;
   updateSkillUI();
+  if (typeof playSkill === 'function') playSkill(id);
   return true;
 }
 

@@ -64,6 +64,11 @@ function startWave(earlyStart) {
   state.phase = 'wave';
   state.enemies = generateWave(state.wave);
   updateUI();
+  if (typeof playWaveStart === 'function') playWaveStart();
+  // Boss wave announcement
+  if (state.wave % 5 === 0 && typeof playBossAppear === 'function') {
+    setTimeout(playBossAppear, 600);
+  }
 }
 
 function updatePrepCountdown(rawDt) {

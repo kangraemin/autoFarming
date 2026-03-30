@@ -170,8 +170,9 @@ function performFusion(tower, recipeId) {
     spawnCodexUnlockText(recipe);
   }
 
-  // Spectacular evolution animation
+  // Spectacular evolution animation + sound
   spawnFusionEffect(tower, recipe.color);
+  if (typeof playFusion === 'function') playFusion();
 
   return true;
 }
