@@ -3,36 +3,25 @@ function gameLoop(timestamp) {
   let dt = (timestamp - state.lastTime) / 1000;
   state.lastTime = timestamp;
 
-  // Clamp dt to prevent spiral of death
   if (dt > 0.1) dt = 0.1;
 
-  // Apply speed multiplier
+  const rawDt = dt;
   dt *= state.speed;
 
+  // Always advance gameTime at real speed (for animations)
+  state.gameTime += rawDt;
+
   if (state.phase === 'wave') {
-    // Update enemies
-    for (const enemy of state.enemies) {
-      updateEnemy(enemy, dt);
-    }
-
-    // Update towers
-    for (const tower of state.towers) {
-      updateTower(tower, dt);
-    }
-
-    // Update projectiles
-    for (const proj of state.projectiles) {
-      updateProjectile(proj, dt);
-    }
-
-    // Clean up dead projectiles
+    for (const enemy of state.enemies) updateEnemy(enemy, dt);
+    for (const tower of state.towers) updateTower(tower, dt);
+    for (const proj of state.projectiles) updateProjectile(proj, dt);
     state.projectiles = state.projectiles.filter(p => p.alive);
-
-    // Check wave completion
     checkWaveEnd();
   }
 
-  // Render
+  // Particles always update at real speed
+  updateParticles(rawDt);
+
   render();
 
   requestAnimationFrame(gameLoop);
@@ -44,13 +33,14 @@ function init() {
 
   resizeCanvas();
   generatePath();
+  generateDecorations();
   setupInput();
   updateUI();
 
   window.addEventListener('resize', () => {
     resizeCanvas();
     generatePath();
-    // Re-validate existing towers
+    generateDecorations();
     state.towers = state.towers.filter(t =>
       t.col < CONFIG.COLS && t.row < CONFIG.ROWS && !isPathTile(t.col, t.row)
     );

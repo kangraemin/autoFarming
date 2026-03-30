@@ -28,7 +28,6 @@ function updateEnemy(enemy, dt) {
 
   if (!enemy.alive || enemy.reached) return;
 
-  // Slow effect
   let speedMult = 1;
   if (enemy.slowTimer > 0) {
     speedMult = enemy.slowAmount;
@@ -53,21 +52,41 @@ function updateEnemy(enemy, dt) {
     enemy.x = tx;
     enemy.y = ty;
     enemy.pathIndex++;
-
-    if (enemy.pathIndex >= state.path.length - 1) {
-      enemy.reached = true;
-    }
+    if (enemy.pathIndex >= state.path.length - 1) enemy.reached = true;
   } else {
     enemy.x += (dx / dist) * speed;
     enemy.y += (dy / dist) * speed;
   }
 }
 
-function damageEnemy(enemy, damage) {
+// Main hit function used by projectiles
+function hitEnemy(enemy, damage, isMajorHit, hitColor) {
+  if (!enemy.alive) return;
   enemy.hp -= damage;
+
+  if (isMajorHit) {
+    spawnHitSpark(enemy.x, enemy.y, hitColor || enemy.color);
+  }
+
   if (enemy.hp <= 0) {
     enemy.alive = false;
     state.gold += enemy.reward;
     state.score += enemy.reward;
+
+    // Death FX
+    if (enemy.type === 'boss') {
+      spawnBossKillExplosion(enemy.x, enemy.y);
+    } else {
+      spawnKillExplosion(enemy.x, enemy.y, enemy.color);
+    }
+    spawnGoldPopup(enemy.x, enemy.y, enemy.reward);
+
+    // Track kill on tower
+    // (projectile.js already does this via proj.tower.kills++)
   }
+}
+
+// Legacy function used by older code paths
+function damageEnemy(enemy, damage) {
+  hitEnemy(enemy, damage, false, null);
 }

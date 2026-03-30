@@ -9,13 +9,18 @@ const state = {
   towers: [],
   enemies: [],
   projectiles: [],
+  particles: [],
+  floatingTexts: [],
+  screenShake: 0,
   path: [],
-  pathSet: null, // Set of "col,row" for path tiles
-  gridOccupied: null, // Set of "col,row" for tower tiles
+  pathSet: null,
+  gridOccupied: null,
+  decorations: [], // {col, row, type} — trees, rocks, bushes
   canvas: null,
   ctx: null,
   lastTime: 0,
-  selectedPlacedTower: null, // tower object for upgrade popup
+  selectedPlacedTower: null,
+  gameTime: 0, // total elapsed time for animations
 };
 
 function initState() {
@@ -28,5 +33,9 @@ function initState() {
   state.towers = [];
   state.enemies = [];
   state.projectiles = [];
+  state.particles = [];
+  state.floatingTexts = [];
+  state.screenShake = 0;
   state.selectedPlacedTower = null;
+  state.gameTime = 0;
 }
