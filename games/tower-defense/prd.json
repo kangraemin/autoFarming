@@ -65,13 +65,13 @@
     {
       "id": "gameplay-unique",
       "title": "차별화 요소: Tower Fusion — 적 처치 시 '소울' 드롭. 소울을 타워에 먹이면 적의 속성 흡수하여 타워 진화. 불몹 소울+Arrow=Fire Arrow(화상DoT), 얼음몹 소울+Cannon=Frost Bomb(범위슬로우), 번개몹 소울+Ice=Thunder Ice(감전+슬로우), 보스 소울=변이 타워(완전히 새 형태). 소울 인벤토리 UI, 타워에 드래그앤드롭으로 합성, 합성 시 이펙트 연출. 최소 8가지 합성 조합.",
-      "passes": false,
+      "passes": true,
       "priority": 1
     },
     {
       "id": "gameplay-strength",
       "title": "확실한 강점: '적을 잡을수록 타워가 진화한다' — 소울 수집+합성의 중독성. 새 조합 발견 시 도감에 등록되는 수집 시스템. 합성 시 화려한 진화 연출(타워 변신 애니메이션+파티클 폭발). 이 부분만큼은 확실히 폴리싱.",
-      "passes": false,
+      "passes": true,
       "priority": 1
     },
     {

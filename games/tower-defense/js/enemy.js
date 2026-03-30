@@ -28,8 +28,34 @@ function updateEnemy(enemy, dt) {
 
   if (!enemy.alive || enemy.reached) return;
 
+  // Damage over time (from poison/fire fused towers)
+  if (enemy.dots && enemy.dots.length > 0) {
+    for (let i = enemy.dots.length - 1; i >= 0; i--) {
+      const dot = enemy.dots[i];
+      dot.duration -= dt;
+      dot.timer -= dt;
+      if (dot.timer <= 0) {
+        dot.timer = dot.interval;
+        hitEnemy(enemy, dot.damage, false, dot.color);
+        createParticle(
+          enemy.x + (Math.random() - 0.5) * 12,
+          enemy.y + (Math.random() - 0.5) * 12,
+          (Math.random() - 0.5) * 25, -20 - Math.random() * 30,
+          dot.color, 0.45, 3 + Math.random() * 3
+        );
+      }
+      if (dot.duration <= 0 || !enemy.alive) enemy.dots.splice(i, 1);
+    }
+    if (!enemy.alive) return;
+  }
+
   let speedMult = 1;
-  if (enemy.slowTimer > 0) {
+
+  // Stun overrides slow
+  if (enemy.stunTimer > 0) {
+    enemy.stunTimer -= dt;
+    speedMult = 0;
+  } else if (enemy.slowTimer > 0) {
     speedMult = enemy.slowAmount;
     enemy.slowTimer -= dt;
   }
@@ -80,6 +106,9 @@ function hitEnemy(enemy, damage, isMajorHit, hitColor) {
       spawnKillExplosion(enemy.x, enemy.y, enemy.color);
     }
     spawnGoldPopup(enemy.x, enemy.y, enemy.reward);
+
+    // Soul drop
+    tryDropSoul(enemy);
 
     // Track kill on tower
     // (projectile.js already does this via proj.tower.kills++)

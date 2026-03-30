@@ -21,6 +21,10 @@ const state = {
   lastTime: 0,
   selectedPlacedTower: null,
   gameTime: 0, // total elapsed time for animations
+  // Tower Fusion
+  souls: {},      // { goblin: 0, wolf: 0, golem: 0, dragon: 0 }
+  soulDrops: [],  // soul orbs waiting on canvas to be clicked
+  codex: [],      // discovered fusion ids (persists across waves)
 };
 
 function initState() {
@@ -38,4 +42,7 @@ function initState() {
   state.screenShake = 0;
   state.selectedPlacedTower = null;
   state.gameTime = 0;
+  state.souls = {};
+  state.soulDrops = [];
+  // codex is NOT reset — permanent collection progress
 }

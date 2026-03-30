@@ -70,6 +70,58 @@ function findTarget(tower) {
 }
 
 function updateTower(tower, dt) {
+  // Periodic fusion abilities (freeze_all, judgment)
+  if (tower.fusedSpec) {
+    const spec = tower.fusedSpec;
+    spec.fusedCooldown -= dt;
+
+    if (spec.special === 'freeze_all' && spec.fusedCooldown <= 0) {
+      spec.fusedCooldown = spec.specialParams.cooldown;
+      const rangePx = tower.range * CONFIG.GRID_SIZE;
+      let frozeAny = false;
+      for (const enemy of state.enemies) {
+        if (!enemy.alive || enemy.delay > 0) continue;
+        const dx = enemy.x - tower.x;
+        const dy = enemy.y - tower.y;
+        if (Math.sqrt(dx * dx + dy * dy) <= rangePx) {
+          enemy.slowAmount = 0.0;
+          enemy.slowTimer = spec.specialParams.freezeDuration;
+          spawnIceShatter(enemy.x, enemy.y);
+          frozeAny = true;
+        }
+      }
+      if (frozeAny) {
+        spawnExplosion(tower.x, tower.y, '#88eeff', 22);
+        state.screenShake = 4;
+        state.floatingTexts.push({
+          x: tower.x, y: tower.y - 20,
+          text: 'ABSOLUTE ZERO!', color: '#88eeff',
+          life: 1.5, maxLife: 1.5, vy: -35, fontSize: 14,
+        });
+      }
+    }
+
+    if (spec.special === 'judgment' && spec.fusedCooldown <= 0) {
+      spec.fusedCooldown = spec.specialParams.cooldown;
+      let hit = 0;
+      for (const enemy of state.enemies) {
+        if (!enemy.alive || enemy.delay > 0) continue;
+        hitEnemy(enemy, tower.damage, false, '#ffff00');
+        spawnExplosion(enemy.x, enemy.y, '#ffff88', 8);
+        hit++;
+      }
+      if (hit > 0) {
+        spawnExplosion(tower.x, tower.y, '#ffff00', 30);
+        state.screenShake = 8;
+        state.floatingTexts.push({
+          x: tower.x, y: tower.y - 20,
+          text: `JUDGMENT! ×${hit}`, color: '#ffff00',
+          life: 1.8, maxLife: 1.8, vy: -40, fontSize: 16,
+        });
+      }
+    }
+  }
+
   tower.fireCooldown -= dt;
   if (tower.fireCooldown > 0) return;
 
@@ -77,8 +129,21 @@ function updateTower(tower, dt) {
   if (!target) return;
 
   tower.fireCooldown = 1 / tower.fireRate;
-  const template = CONFIG.TOWER_TYPES[tower.type];
+
+  // Use base tower template for projectile properties (color, splash, slow, chain)
+  const baseTowerType = tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
+  const template = CONFIG.TOWER_TYPES[baseTowerType];
+
+  // Override splash for siege/dragon cannon
+  let effectiveTemplate = template;
+  if (tower.fusedSpec?.splashMult) {
+    effectiveTemplate = { ...template, splash: (template.splash || 0) * tower.fusedSpec.splashMult };
+  }
+  if (tower.fusedSpec?.special === 'chain_plus') {
+    const extra = tower.fusedSpec.specialParams.extraChains || 0;
+    effectiveTemplate = { ...template, chain: (template.chain || 0) + extra };
+  }
 
   // Create projectile
-  state.projectiles.push(createProjectile(tower, target, template));
+  state.projectiles.push(createProjectile(tower, target, effectiveTemplate));
 }

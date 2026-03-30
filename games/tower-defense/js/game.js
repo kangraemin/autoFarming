@@ -19,8 +19,9 @@ function gameLoop(timestamp) {
     checkWaveEnd();
   }
 
-  // Particles always update at real speed
+  // Particles and soul drops always update at real speed
   updateParticles(rawDt);
+  updateSoulDrops(rawDt);
 
   render();
 

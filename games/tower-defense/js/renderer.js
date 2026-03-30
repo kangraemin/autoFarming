@@ -194,14 +194,50 @@ function drawTowers(ctx) {
     ctx.save();
     ctx.translate(x, y);
 
-    switch (tower.type) {
+    // Fused tower glow aura (drawn behind tower)
+    if (tower.fusedSpec) {
+      const fc = tower.fusedSpec.color;
+      const t = state.gameTime;
+      const pulse = Math.sin(t * 3) * 0.15 + 0.85;
+      const auraR = gs * 0.62 * pulse;
+      const auraGrd = ctx.createRadialGradient(0, 0, auraR * 0.2, 0, 0, auraR);
+      auraGrd.addColorStop(0, fc + '55');
+      auraGrd.addColorStop(0.6, fc + '22');
+      auraGrd.addColorStop(1, 'transparent');
+      ctx.fillStyle = auraGrd;
+      ctx.beginPath(); ctx.arc(0, 0, auraR, 0, Math.PI * 2); ctx.fill();
+
+      // Spinning dashed ring
+      ctx.strokeStyle = fc + 'bb';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.arc(0, 0, gs * 0.52, t * 1.8, t * 1.8 + Math.PI * 1.5);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    const drawType = tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
+    switch (drawType) {
       case 'arrow': drawArrowTower(ctx, gs, tower); break;
       case 'cannon': drawCannonTower(ctx, gs, tower); break;
       case 'ice': drawIceTower(ctx, gs, tower); break;
       case 'lightning': drawLightningTower(ctx, gs, tower); break;
     }
 
-    // Level badge
+    // Fusion badge (top-left corner)
+    if (tower.fusedSpec) {
+      const fc = tower.fusedSpec.color;
+      ctx.fillStyle = fc;
+      ctx.beginPath(); ctx.arc(-gs * 0.38, -gs * 0.38, 7, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.font = 'bold 8px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('★', -gs * 0.38, -gs * 0.38);
+    }
+
+    // Level badge (top-right)
     if (tower.level > 1) {
       ctx.fillStyle = '#ffd700';
       ctx.beginPath(); ctx.arc(gs * 0.38, -gs * 0.38, 7, 0, Math.PI * 2); ctx.fill();
@@ -363,11 +399,39 @@ function drawEnemies(ctx) {
     }
 
     // Slow overlay
-    if (enemy.slowTimer > 0) {
+    if (enemy.slowTimer > 0 && (!enemy.stunTimer || enemy.stunTimer <= 0)) {
       ctx.strokeStyle = 'rgba(100,200,255,0.5)';
       ctx.lineWidth = 2;
       const s = gs * 0.35 * (enemy.size || 1);
       ctx.beginPath(); ctx.arc(0, 0, s + 3, 0, Math.PI * 2); ctx.stroke();
+    }
+
+    // Stun overlay
+    if (enemy.stunTimer > 0) {
+      ctx.strokeStyle = 'rgba(255,180,0,0.8)';
+      ctx.lineWidth = 2.5;
+      const s = gs * 0.35 * (enemy.size || 1);
+      ctx.beginPath(); ctx.arc(0, 0, s + 4, 0, Math.PI * 2); ctx.stroke();
+      // Stars above head
+      const starAlpha = Math.sin(state.gameTime * 10) * 0.3 + 0.7;
+      ctx.globalAlpha = starAlpha;
+      ctx.fillStyle = '#ffcc00';
+      ctx.font = `${Math.floor(gs * 0.22)}px sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('★', 0, -s - 10);
+      ctx.globalAlpha = 1;
+    }
+
+    // DoT overlay (poison/fire)
+    if (enemy.dots && enemy.dots.length > 0) {
+      const dotColor = enemy.dots[enemy.dots.length - 1].color;
+      ctx.strokeStyle = dotColor + '88';
+      ctx.lineWidth = 1.5;
+      const s = gs * 0.35 * (enemy.size || 1);
+      ctx.setLineDash([2, 3]);
+      ctx.beginPath(); ctx.arc(0, 0, s + 6, state.gameTime * 4, state.gameTime * 4 + Math.PI * 1.6); ctx.stroke();
+      ctx.setLineDash([]);
     }
 
     // HP bar
@@ -674,7 +738,8 @@ function drawFloatingTexts(ctx) {
   for (const ft of state.floatingTexts) {
     const alpha = Math.min(1, ft.life / ft.maxLife * 2);
     ctx.globalAlpha = alpha;
-    ctx.font = 'bold 14px sans-serif';
+    const fontSize = ft.fontSize || 14;
+    ctx.font = `bold ${fontSize}px sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     // Outline
@@ -735,6 +800,7 @@ function render() {
   drawDecorations(ctx);
   drawHoverPreview(ctx);
   drawTowers(ctx);
+  drawSoulDrops(ctx);
   drawEnemies(ctx);
   drawProjectiles(ctx);
   drawParticles(ctx);

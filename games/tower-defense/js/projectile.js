@@ -12,14 +12,14 @@ function createProjectile(tower, target, template) {
   // Track barrel angle for cannon drawing
   tower.barrelAngle = angle;
 
-  return {
+  const proj = {
     x: tower.x,
     y: tower.y,
     targetId: target,
     speed: template.projectileSpeed * CONFIG.GRID_SIZE,
     damage: tower.damage,
-    color: template.projectileColor,
-    towerType: tower.type,
+    color: tower.fusedSpec ? tower.fusedSpec.color : template.projectileColor,
+    towerType: tower.fusedSpec ? tower.fusedSpec.baseType : tower.type,
     angle,
     splash: template.splash || 0,
     slow: template.slow || 0,
@@ -28,7 +28,10 @@ function createProjectile(tower, target, template) {
     alive: true,
     tower,
     trailTimer: 0,
+    fusedSpec: tower.fusedSpec || null,
+    pierceLeft: tower.fusedSpec?.pierceCount || 0,
   };
+  return proj;
 }
 
 function updateProjectile(proj, dt) {
@@ -102,9 +105,29 @@ function updateProjectile(proj, dt) {
       }
       chainTargets.slice(0, proj.chain).forEach(e => {
         hitEnemy(e, Math.floor(proj.damage * 0.5), false, '#ffff88');
-        // Draw chain arc effect via particles
         spawnExplosion(e.x, e.y, '#ffff88', 4);
       });
+    }
+
+    // Fused special on hit
+    if (proj.fusedSpec && target.alive !== false) {
+      applyFusedHit(proj, target);
+    }
+
+    // Stun special (from siege_cannon)
+    if (proj.fusedSpec?.special === 'stun' && target.alive) {
+      target.stunTimer = proj.fusedSpec.specialParams.duration;
+      spawnExplosion(target.x, target.y, '#ffaa00', 10);
+    }
+
+    // Pierce: keep projectile alive if pierceLeft > 0 (regardless of kill)
+    if (proj.pierceLeft > 0) {
+      proj.pierceLeft--;
+      const nextTarget = findNextPierceTarget(proj, target);
+      if (nextTarget) {
+        proj.targetId = nextTarget;
+        return; // don't kill projectile
+      }
     }
 
     proj.alive = false;
@@ -112,4 +135,51 @@ function updateProjectile(proj, dt) {
     proj.x += (dx / dist) * moveSpeed;
     proj.y += (dy / dist) * moveSpeed;
   }
+}
+
+// Apply fused special effects on projectile hit
+function applyFusedHit(proj, target) {
+  const spec = proj.fusedSpec;
+  if (!spec || !target.alive) return;
+
+  switch (spec.special) {
+    case 'dot':
+    case 'fire_dot': {
+      if (!target.dots) target.dots = [];
+      // Replace existing dot of same type
+      target.dots = target.dots.filter(d => d.sourceId !== spec.id);
+      target.dots.push({
+        sourceId: spec.id,
+        damage: spec.specialParams.damage,
+        duration: spec.specialParams.duration,
+        interval: spec.specialParams.interval,
+        timer: spec.specialParams.interval,
+        color: spec.specialParams.color || spec.color,
+      });
+      break;
+    }
+    case 'mega_splash': {
+      // Extra fire explosion at impact
+      spawnExplosion(target.x, target.y, '#ff4400', 12);
+      spawnExplosion(target.x, target.y, '#ffaa00', 8);
+      break;
+    }
+  }
+}
+
+// Find the next alive enemy for pierce projectiles
+function findNextPierceTarget(proj, lastHit) {
+  let closest = null;
+  let closestDist = Infinity;
+  for (const enemy of state.enemies) {
+    if (enemy === lastHit || !enemy.alive || enemy.delay > 0) continue;
+    const dx = enemy.x - proj.x;
+    const dy = enemy.y - proj.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < closestDist) {
+      closest = enemy;
+      closestDist = dist;
+    }
+  }
+  return closest;
 }

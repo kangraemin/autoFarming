@@ -165,4 +165,155 @@ body {
 .overlay-content h2 { font-size: 24px; margin-bottom: 12px; }
 .overlay-content p { margin-bottom: 16px; color: #aaa; }
 
+/* ── Soul Bar ──────────────────────────────────────────────────── */
+.soul-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px 6px;
+  border-bottom: 1px solid #0f3460;
+  min-height: 28px;
+}
+
+.soul-bar-label {
+  font-size: 12px;
+  color: #aaa;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.soul-inventory {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-height: 20px;
+}
+
+.soul-item {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid currentColor;
+  cursor: default;
+}
+
+.soul-empty {
+  font-size: 11px;
+  color: #444;
+  font-style: italic;
+}
+
+.codex-btn {
+  padding: 4px 10px;
+  border: 1px solid #0f3460;
+  border-radius: 6px;
+  background: #1a1a2e;
+  color: #aaa;
+  font-size: 11px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.codex-btn:hover { border-color: #e94560; color: #eee; }
+
+/* ── Fusion Options ────────────────────────────────────────────── */
+.fusion-options {
+  margin: 8px 0;
+  text-align: left;
+}
+
+.fusion-label {
+  font-size: 11px;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+
+.fusion-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 10px;
+  margin: 3px;
+  border: 2px solid;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.05);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.15s;
+  min-width: 110px;
+}
+
+.fusion-btn:hover {
+  background: rgba(255,255,255,0.12);
+  transform: scale(1.04);
+}
+
+.fusion-btn:active {
+  transform: scale(0.97);
+}
+
+.fusion-cost {
+  font-size: 10px;
+  margin-top: 2px;
+  font-weight: 400;
+}
+
+/* ── Codex Modal ───────────────────────────────────────────────── */
+.codex-content {
+  max-width: 380px;
+  width: 90vw;
+  max-height: 70vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.codex-list {
+  overflow-y: auto;
+  flex: 1;
+  max-height: 50vh;
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.codex-entry {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid transparent;
+  text-align: left;
+}
+
+.codex-entry.discovered {
+  background: rgba(255,255,255,0.07);
+}
+
+.codex-entry.undiscovered {
+  opacity: 0.4;
+}
+
+.codex-icon {
+  font-size: 13px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.codex-recipe {
+  font-size: 11px;
+}
+
+.codex-desc {
+  font-size: 11px;
+  margin-top: 1px;
+}
+
 /* Grid highlight on canvas handled in renderer */

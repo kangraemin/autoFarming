@@ -16,6 +16,28 @@
 
 ## 반복 기록
 
+### 반복 2 — 2026-03-30 (gameplay-unique, gameplay-strength)
+
+**구현 내용:**
+- `js/soul.js` 신규: 소울 드롭 시스템 (캔버스 glowing orb, 클릭 수집, 인벤토리 UI)
+- `js/fusion.js` 신규: 10가지 합성 레시피 (Poison Arrow, Swift Arrow, Siege Cannon, Cursed Frost, Chain Storm, Stone Shot, Dragon Fang, Dragon Cannon, Absolute Zero, Judgment)
+- `js/state.js` 수정: souls/soulDrops/codex 필드 추가 (codex는 게임오버 시 유지)
+- `js/enemy.js` 수정: 사망 시 tryDropSoul, DoT 처리 (독/화염), 기절(stun) 지원
+- `js/tower.js` 수정: 주기적 광역 능력 (freeze_all 8초, judgment 10초), 합성 시 스탯 오버라이드
+- `js/projectile.js` 수정: fusedSpec 복사, applyFusedHit, findNextPierceTarget (관통)
+- `js/renderer.js` 수정: drawSoulDrops, 합성 타워 glow aura + 회전 링, 기절/DoT 오버레이, fontSize 지원
+- `js/input.js` 수정: 소울 클릭 수집, 업그레이드 팝업에 합성 버튼, 도감 모달
+- `index.html/style.css`: 소울 바, 합성 버튼, 도감 모달 추가
+
+**배운 것:**
+- 소울 orb 클릭 영역은 실제 반지름의 2.5배로 설정해야 터치 환경에서 쉽게 수집됨
+- `tower.fusedSpec.baseType`으로 원본 타워 타입을 보존해야 재합성 가능
+- `pierce`는 타겟 처치 여부와 무관하게 작동해야 함 (`target.alive === false` 조건 제거)
+- `tower.js`에서 `hitEnemy` 호출 가능 — `enemy.js`가 먼저 로드되므로 OK
+- `soul.js`와 `fusion.js`는 `particles.js` 이후, `path.js` 이전에 로드해야 함
+- 합성 시 `fusedCooldown: 0` 초기화 → 첫 틱에 즉시 발동 (activation effect로 사용)
+- `state.codex`는 `initState()`에서 리셋하지 않음 — 영구 수집 기록
+
 ### 반복 1 — 2026-03-30 (visual-map, visual-towers, visual-enemies, fx-particles, fx-shoot, fx-hit)
 
 **구현 내용:**

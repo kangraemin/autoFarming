@@ -11,11 +11,22 @@ function setupInput() {
     closePopup();
   });
 
-  // Canvas click — place tower or select existing
+  // Canvas click — collect soul, place tower or select existing
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
+
+    // Check if clicking a soul drop (priority over tower placement)
+    for (const drop of state.soulDrops) {
+      const dx = x - drop.x;
+      const dy = y - drop.y;
+      if (Math.sqrt(dx * dx + dy * dy) <= drop.radius * 2.5) {
+        collectSoul(drop);
+        return;
+      }
+    }
+
     const col = Math.floor(x / CONFIG.GRID_SIZE);
     const row = Math.floor(y / CONFIG.GRID_SIZE);
 
@@ -52,6 +63,17 @@ function setupInput() {
     const rect = canvas.getBoundingClientRect();
     const x = touch.clientX - rect.left;
     const y = touch.clientY - rect.top;
+
+    // Check soul orbs first
+    for (const drop of state.soulDrops) {
+      const dx = x - drop.x;
+      const dy = y - drop.y;
+      if (Math.sqrt(dx * dx + dy * dy) <= drop.radius * 2.5) {
+        collectSoul(drop);
+        return;
+      }
+    }
+
     const col = Math.floor(x / CONFIG.GRID_SIZE);
     const row = Math.floor(y / CONFIG.GRID_SIZE);
 
@@ -97,6 +119,30 @@ function setupInput() {
 
   document.getElementById('close-popup').addEventListener('click', closePopup);
 
+  // Fusion button clicks (delegated)
+  document.getElementById('fusion-options').addEventListener('click', (e) => {
+    const btn = e.target.closest('.fusion-btn');
+    if (!btn || !state.selectedPlacedTower) return;
+    const recipeId = btn.dataset.recipe;
+    const success = performFusion(state.selectedPlacedTower, recipeId);
+    if (success) {
+      showUpgradePopup(state.selectedPlacedTower); // refresh popup
+      updateUI();
+    }
+  });
+
+  // Codex button
+  document.getElementById('codex-btn').addEventListener('click', () => {
+    const modal = document.getElementById('codex-modal');
+    document.getElementById('codex-list').innerHTML = renderCodexList();
+    document.getElementById('codex-count').textContent = `${state.codex.length} / ${FUSION_RECIPES.length}`;
+    modal.classList.remove('hidden');
+  });
+
+  document.getElementById('codex-close').addEventListener('click', () => {
+    document.getElementById('codex-modal').classList.add('hidden');
+  });
+
   // Overlay button
   document.getElementById('overlay-btn').addEventListener('click', () => {
     document.getElementById('overlay').classList.add('hidden');
@@ -110,15 +156,41 @@ function setupInput() {
 
 function showUpgradePopup(tower) {
   state.selectedPlacedTower = tower;
-  const template = CONFIG.TOWER_TYPES[tower.type];
+  const baseTowerType = tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
+  const template = CONFIG.TOWER_TYPES[baseTowerType];
   const upgCost = template.upgradeCost(tower.level);
 
-  document.getElementById('popup-title').textContent = `${template.icon} ${template.name} Lv${tower.level}`;
+  const fusedLabel = tower.fusedSpec
+    ? `<span style="color:${tower.fusedSpec.color}">${tower.fusedSpec.name}</span>`
+    : template.name;
+
+  document.getElementById('popup-title').innerHTML = `${template.icon} ${fusedLabel} Lv${tower.level}`;
   document.getElementById('popup-stats').innerHTML =
     `Damage: ${tower.damage} | Range: ${tower.range.toFixed(1)} | Kills: ${tower.kills}<br>` +
     `Upgrade: ${upgCost}g | Sell: ${Math.floor(template.cost * 0.6)}g`;
   document.getElementById('upgrade-btn').textContent = `⬆ Upgrade (${upgCost}g)`;
   document.getElementById('upgrade-btn').disabled = state.gold < upgCost;
+
+  // Fusion options
+  const fusionOptions = getFusionOptions(tower);
+  const fusionEl = document.getElementById('fusion-options');
+  if (fusionOptions.length > 0) {
+    fusionEl.innerHTML = '<div class="fusion-label">✨ 합성 가능</div>' +
+      fusionOptions.map(r => {
+        const soulInfo = SOUL_TYPES[r.soul];
+        return `<button class="fusion-btn" data-recipe="${r.id}"
+          style="border-color:${r.color};color:${r.color}"
+          title="${r.desc}">
+          ${r.name}
+          <span class="fusion-cost" style="color:${soulInfo.color}">${soulInfo.name.split(' ')[0]} ×1</span>
+        </button>`;
+      }).join('');
+    fusionEl.style.display = 'block';
+  } else {
+    fusionEl.innerHTML = '';
+    fusionEl.style.display = 'none';
+  }
+
   document.getElementById('upgrade-popup').classList.remove('hidden');
 }
 
