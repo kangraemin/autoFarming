@@ -19,6 +19,14 @@ function gameLoop(timestamp) {
     checkWaveEnd();
   }
 
+  // Prep countdown uses real time (not speed-scaled)
+  if (state.phase === 'prep' && state.prepCountdown > 0) {
+    updatePrepCountdown(rawDt);
+    updateUI(); // keep button text synced with countdown
+  } else {
+    updatePrepCountdown(rawDt);
+  }
+
   // Particles and soul drops always update at real speed
   updateParticles(rawDt);
   updateSoulDrops(rawDt);

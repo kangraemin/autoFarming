@@ -16,6 +16,22 @@
 
 ## 반복 기록
 
+### 반복 3 — 2026-03-30 (gameplay-waves)
+
+**구현 내용:**
+- `js/wave.js`: `getNextWavePreview()` 추가 (적 타입/숫자 예측), `startWave(earlyStart)` 파라미터 추가 (조기 시작 보너스), `updatePrepCountdown(rawDt)` 추가 (자동 카운트다운)
+- `js/state.js`: `prepCountdown`, `prepDuration` 필드 추가
+- `js/game.js`: 게임루프에서 `updatePrepCountdown` 호출, prep 중 매 프레임 `updateUI()`로 버튼 텍스트 동기화
+- `js/renderer.js`: `drawPrepUI()` 추가 — 반투명 패널에 다음 웨이브 번호, 적 아이콘/숫자, 원형 카운트다운, 조기시작 보너스 금액 표시
+- `js/input.js`: 버튼 텍스트를 카운트다운 + 보너스 금액으로 실시간 업데이트
+
+**배운 것:**
+- 카운트다운은 `rawDt`(실제 시간)로 처리해야 배속(state.speed)에 무관하게 동작
+- `spawnFloatingText` 함수 없음 — `state.floatingTexts.push()` 직접 사용
+- prep UI는 `ctx.restore()` 이전에 마지막에 그려야 다른 레이어 위에 표시됨
+- `prepCountdown = 0` 초기 상태 = 첫 웨이브는 수동 시작 (카운트다운 없음). 웨이브 클리어 후부터만 카운트다운 활성화
+- `updateUI()`는 이벤트 기반만으로 충분하지 않음 — countdown 버튼 텍스트 동기화를 위해 prep 중 매 프레임 호출 필요
+
 ### 반복 2 — 2026-03-30 (gameplay-unique, gameplay-strength)
 
 **구현 내용:**

@@ -25,6 +25,9 @@ const state = {
   souls: {},      // { goblin: 0, wolf: 0, golem: 0, dragon: 0 }
   soulDrops: [],  // soul orbs waiting on canvas to be clicked
   codex: [],      // discovered fusion ids (persists across waves)
+  // Wave prep
+  prepCountdown: 0,   // seconds remaining in prep phase (0 = manual start only)
+  prepDuration: 15,   // total prep time between waves
 };
 
 function initState() {
@@ -44,5 +47,6 @@ function initState() {
   state.gameTime = 0;
   state.souls = {};
   state.soulDrops = [];
+  state.prepCountdown = 0;
   // codex is NOT reset — permanent collection progress
 }

@@ -89,7 +89,7 @@ function setupInput() {
 
   // Start wave button
   document.getElementById('start-wave-btn').addEventListener('click', () => {
-    startWave();
+    startWave(true); // earlyStart = true for manual clicks
   });
 
   // Speed button
@@ -221,5 +221,12 @@ function updateUI() {
   // Start wave button
   const startBtn = document.getElementById('start-wave-btn');
   startBtn.disabled = state.phase === 'wave';
-  startBtn.textContent = state.phase === 'wave' ? '🌊 In Progress...' : `▶ Wave ${state.wave + 1}`;
+  if (state.phase === 'wave') {
+    startBtn.textContent = '🌊 진행 중...';
+  } else if (state.prepCountdown > 0) {
+    const bonus = Math.floor(state.prepCountdown * 3);
+    startBtn.textContent = `▶ 조기시작 (+${bonus}g) ${Math.ceil(state.prepCountdown)}s`;
+  } else {
+    startBtn.textContent = `▶ Wave ${state.wave + 1} 시작`;
+  }
 }

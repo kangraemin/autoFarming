@@ -779,6 +779,85 @@ function drawHoverPreview(ctx) {
   }
 }
 
+// ── Wave prep UI (countdown + next wave preview) ───────────────────
+const ENEMY_ICONS = { basic: '👺', fast: '🐺', tank: '🪨', boss: '🐉' };
+
+function drawPrepUI(ctx) {
+  if (state.phase !== 'prep' || state.prepCountdown <= 0) return;
+
+  const W = state.canvas.width;
+  const H = state.canvas.height;
+  const cx = W / 2;
+  const nextWave = state.wave + 1;
+  const preview = getNextWavePreview(nextWave);
+  const countdown = Math.ceil(state.prepCountdown);
+  const earlyBonus = Math.floor(state.prepCountdown * 3);
+
+  // Panel background
+  const panelW = Math.min(320, W - 32);
+  const panelH = 120;
+  const px = cx - panelW / 2;
+  const py = H * 0.18;
+
+  ctx.globalAlpha = 0.88;
+  ctx.fillStyle = '#0a0f1e';
+  ctx.beginPath();
+  ctx.roundRect(px, py, panelW, panelH, 14);
+  ctx.fill();
+  ctx.strokeStyle = '#2a4080';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  ctx.globalAlpha = 1;
+
+  // Title
+  ctx.font = 'bold 13px sans-serif';
+  ctx.fillStyle = '#aabbd0';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`WAVE ${nextWave} 준비`, cx, py + 18);
+
+  // Countdown circle
+  const circX = px + panelW - 38;
+  const circY = py + panelH / 2;
+  const radius = 26;
+  const progress = state.prepCountdown / state.prepDuration;
+
+  ctx.beginPath();
+  ctx.arc(circX, circY, radius, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+  ctx.strokeStyle = countdown <= 3 ? '#ff4444' : '#44aaff';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.font = `bold ${countdown >= 10 ? 18 : 22}px sans-serif`;
+  ctx.fillStyle = countdown <= 3 ? '#ff6666' : '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(countdown, circX, circY);
+
+  // Enemy preview badges
+  const startX = px + 14;
+  let bx = startX;
+  const by = py + 50;
+  for (const { type, count } of preview) {
+    const cfg = CONFIG.ENEMY_TYPES[type];
+    const icon = ENEMY_ICONS[type] || '?';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = cfg.color;
+    ctx.fillText(`${icon} ×${count}`, bx, by);
+    bx += 64;
+    if (bx > px + panelW - 60) { bx = startX; }
+  }
+
+  // Early start bonus hint
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = '#ffd700';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`조기 시작 시 +${earlyBonus}g 보너스`, cx, py + panelH - 14);
+}
+
 // ── Main render ────────────────────────────────────────────────────
 function render() {
   const ctx = state.ctx;
@@ -805,6 +884,7 @@ function render() {
   drawProjectiles(ctx);
   drawParticles(ctx);
   drawFloatingTexts(ctx);
+  drawPrepUI(ctx);
 
   ctx.restore();
 }

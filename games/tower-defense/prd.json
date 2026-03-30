@@ -41,7 +41,7 @@
     {
       "id": "gameplay-waves",
       "title": "웨이브 시스템 — 웨이브 사이 준비 타임(카운트다운), 다음 웨이브 적 미리보기, 조기 시작 보너스 골드",
-      "passes": false,
+      "passes": true,
       "priority": 2
     },
     {
