@@ -13,6 +13,9 @@ export default class ProjectileManager {
     const proj = new Projectile(this.scene, tower, target, template);
     this.projectiles.push(proj);
     this._spawnMuzzleFlash(tower.x, tower.y, template.projectileColor);
+    if (tower.towerType === 'cannon') {
+      this.scene.particleEffects?.smokeTrail(tower.x, tower.y);
+    }
     return proj;
   }
 
@@ -39,6 +42,14 @@ export default class ProjectileManager {
     // 메인 데미지
     const wasAlive = target.alive;
     target.takeDamage(proj.damage);
+
+    // 데미지 숫자 표시
+    let dmgColor = '#ffffff';
+    if (proj.towerType === 'cannon') dmgColor = '#ff6b6b';
+    else if (proj.towerType === 'ice') dmgColor = '#88ccff';
+    else if (proj.towerType === 'lightning') dmgColor = '#ffee88';
+    else if (proj.towerType === 'arrow') dmgColor = '#ffd700';
+    this.scene.floatingText?.damage(target.x, target.y, proj.damage, dmgColor);
 
     if (wasAlive && !target.alive && proj.towerRef) {
       proj.towerRef.kills++;
@@ -73,6 +84,7 @@ export default class ProjectileManager {
         }
       }
       this._spawnExplosion(target.x, target.y, 0xff8833);
+      this.scene.particleEffects?.smokeTrail(target.x, target.y);
     }
 
     // Slow (ice)

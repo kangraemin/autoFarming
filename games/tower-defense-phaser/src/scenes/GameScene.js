@@ -11,6 +11,10 @@ import TowerShop from '../ui/TowerShop.js';
 import UpgradePopup from '../ui/UpgradePopup.js';
 import GameManager from '../ui/GameManager.js';
 import SpeedControl from '../ui/SpeedControl.js';
+import CameraEffects from '../ui/CameraEffects.js';
+import AudioManager from '../ui/AudioManager.js';
+import ParticleEffects from '../ui/ParticleEffects.js';
+import FloatingText from '../ui/FloatingText.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -68,6 +72,10 @@ export default class GameScene extends Phaser.Scene {
     this.upgradePopup = new UpgradePopup(this);
     this.gameManager = new GameManager(this, this.waveManager);
     this.speedControl = new SpeedControl(this);
+    this.cameraEffects = new CameraEffects(this);
+    this.audioManager = new AudioManager();
+    this.particleEffects = new ParticleEffects(this);
+    this.floatingText = new FloatingText(this);
 
     // 조기시작 콜백
     this.gameManager.setEarlyStartCallback(() => {
@@ -76,6 +84,7 @@ export default class GameScene extends Phaser.Scene {
         if (result.bonus > 0) {
           this.gameManager.showEarlyStartBonus(result.bonus);
         }
+        this._onWaveStart(result.isBossWave);
       }
     });
 
@@ -106,7 +115,7 @@ export default class GameScene extends Phaser.Scene {
       const type = this.towerShop.getSelectedType();
       const tower = this.towerManager.place(type, col, row, this.gameState);
       if (tower) {
-        // 배치 성공
+        this.audioManager.playTowerPlace();
       }
     });
   }
@@ -116,7 +125,10 @@ export default class GameScene extends Phaser.Scene {
     const dt = (delta / 1000) * speedMult;
 
     // 준비 단계 카운트다운
-    this.waveManager.updatePrep(dt, this.gameState, this.pathData);
+    const autoStarted = this.waveManager.updatePrep(dt, this.gameState, this.pathData);
+    if (autoStarted) {
+      this._onWaveStart(this.waveManager.currentWave % 5 === 0);
+    }
 
     // 적 업데이트
     this.enemyManager.update(dt);
@@ -126,11 +138,16 @@ export default class GameScene extends Phaser.Scene {
     const targets = this.towerManager.update(dt, aliveEnemies);
     for (const { tower, target } of targets) {
       this.projectileManager.fire(tower, target);
+      this.audioManager.playTowerFire(tower.towerType);
     }
     this.projectileManager.update(dt, aliveEnemies, this.gameState);
 
     // 웨이브 종료 체크
     const result = this.waveManager.checkWaveEnd(this.gameState);
+    if (result.leaked > 0) {
+      this.cameraEffects.closeCallFlash(result.leaked);
+      this.audioManager.playLifeLost();
+    }
     if (result.ended) {
       if (result.gameOver) {
         this._goToGameOver(false);
@@ -176,6 +193,7 @@ export default class GameScene extends Phaser.Scene {
       // 업그레이드
       (t) => {
         if (this.towerManager.upgrade(t, this.gameState)) {
+          this.audioManager.playUpgrade();
           this._showUpgradePopup(t); // 갱신
         }
       },
@@ -286,6 +304,16 @@ export default class GameScene extends Phaser.Scene {
     this.add.text(cx, cy, label, {
       fontSize: '10px', color: '#ffffff', fontFamily: 'Arial', fontStyle: 'bold',
     }).setOrigin(0.5);
+  }
+
+  _onWaveStart(isBoss) {
+    this.particleEffects.setWave(this.waveManager.currentWave);
+    if (isBoss) {
+      this.audioManager.playBossAppear();
+    } else {
+      this.audioManager.playWaveStart();
+    }
+    this.particleEffects.waveStartBanner(this.waveManager.currentWave, isBoss);
   }
 
   _createBackButton() {
