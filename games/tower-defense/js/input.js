@@ -257,6 +257,20 @@ function updateUI() {
   document.getElementById('lives').textContent = state.lives;
   document.getElementById('score').textContent = state.score;
 
+  // Lives warning: critical < 5, warning < 10
+  const livesStat = document.getElementById('lives').parentElement;
+  livesStat.classList.toggle('lives-critical', state.lives > 0 && state.lives < 5);
+  livesStat.classList.toggle('lives-warning', state.lives >= 5 && state.lives < 10);
+
+  // Gold flash on change
+  const goldStat = document.getElementById('gold').parentElement;
+  if (state._prevGold !== undefined && state._prevGold !== state.gold) {
+    goldStat.classList.add('gold-flash');
+    clearTimeout(state._goldFlashTimer);
+    state._goldFlashTimer = setTimeout(() => goldStat.classList.remove('gold-flash'), 400);
+  }
+  state._prevGold = state.gold;
+
   // Update tower shop affordability
   document.querySelectorAll('.tower-btn').forEach(btn => {
     const cost = parseInt(btn.dataset.cost);

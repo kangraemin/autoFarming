@@ -335,6 +335,7 @@ function drawTowers(ctx) {
 
 function drawArrowTower(ctx, gs, tower) {
   const s = gs * 0.45;
+  const t = state.gameTime;
   // Stone base platform
   ctx.fillStyle = '#7a8a6a';
   ctx.beginPath(); ctx.roundRect(-s, -s * 0.3, s * 2, s * 1.3, 3); ctx.fill();
@@ -358,16 +359,22 @@ function drawArrowTower(ctx, gs, tower) {
   // Archer (stick figure hint)
   ctx.fillStyle = '#3a2a1a';
   ctx.beginPath(); ctx.arc(0, -s * 0.65, s * 0.14, 0, Math.PI * 2); ctx.fill();
-  // Bow
+  // Bow — idle sway
+  const bowSway = Math.sin(t * 2 + tower.col * 1.5) * 0.08;
+  ctx.save();
+  ctx.translate(s * 0.1, -s * 0.65);
+  ctx.rotate(bowSway);
   ctx.strokeStyle = '#8B5E3C'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(s * 0.1, -s * 0.65, s * 0.18, -Math.PI * 0.6, Math.PI * 0.6); ctx.stroke();
+  ctx.beginPath(); ctx.arc(0, 0, s * 0.18, -Math.PI * 0.6, Math.PI * 0.6); ctx.stroke();
   // Arrow on bow
   ctx.strokeStyle = '#aaa'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(s * 0.05, -s * 0.65); ctx.lineTo(s * 0.38, -s * 0.65); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-s * 0.05, 0); ctx.lineTo(s * 0.28, 0); ctx.stroke();
+  ctx.restore();
 }
 
 function drawCannonTower(ctx, gs, tower) {
   const s = gs * 0.45;
+  const t = state.gameTime;
   // Stone base
   ctx.fillStyle = '#5a5a6a';
   ctx.beginPath(); ctx.roundRect(-s, -s * 0.2, s * 2, s * 1.2, 4); ctx.fill();
@@ -379,8 +386,9 @@ function drawCannonTower(ctx, gs, tower) {
   // Inner ring
   ctx.fillStyle = '#6a6a7a';
   ctx.beginPath(); ctx.arc(0, -s * 0.35, s * 0.45, 0, Math.PI * 2); ctx.fill();
-  // Cannon barrel (point right by default, rotated by tower angle)
-  const angle = tower.barrelAngle || 0;
+  // Cannon barrel — idle slow sweep when no target
+  const idleSway = tower.fireCooldown > 0 ? 0 : Math.sin(t * 1.5 + tower.row * 2) * 0.15;
+  const angle = (tower.barrelAngle || 0) + idleSway;
   ctx.save();
   ctx.translate(0, -s * 0.35);
   ctx.rotate(angle);
@@ -390,8 +398,9 @@ function drawCannonTower(ctx, gs, tower) {
   // Barrel highlight
   ctx.fillStyle = '#4a4a5a';
   ctx.fillRect(s * 0.05, -s * 0.06, s * 0.5, s * 0.06);
-  // Wheel bolts
-  ctx.fillStyle = '#ffcc44';
+  // Wheel bolt — idle pulse
+  const boltAlpha = 0.8 + 0.2 * Math.sin(t * 4 + tower.col);
+  ctx.fillStyle = `rgba(255,204,68,${boltAlpha})`;
   ctx.beginPath(); ctx.arc(0, 0, s * 0.15, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 }

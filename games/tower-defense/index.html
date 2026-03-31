@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="screen-orientation" content="landscape">
+  <meta name="x5-orientation" content="landscape">
+  <meta name="msapplication-orientation" content="landscape">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <title>Idle Tower Defense</title>
   <link rel="stylesheet" href="css/style.css">
@@ -23,6 +26,11 @@
       </div>
       <div id="stage-grid" class="stage-grid"></div>
     </div>
+  </div>
+
+  <!-- Portrait orientation warning -->
+  <div id="orientation-warning" class="orientation-warning">
+    <div class="orientation-msg">📱 가로 모드로 전환해주세요</div>
   </div>
 
   <div id="app">
