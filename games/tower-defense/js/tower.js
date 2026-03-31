@@ -139,7 +139,7 @@ function updateTower(tower, dt) {
   tower.fireCooldown = 1 / effectiveFireRate;
 
   // Use base tower template for projectile properties (color, splash, slow, chain)
-  const baseTowerType = tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
+  const baseTowerType = getTowerBaseType(tower);
   const template = CONFIG.TOWER_TYPES[baseTowerType];
 
   // Override splash for siege/dragon cannon

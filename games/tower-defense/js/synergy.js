@@ -49,9 +49,8 @@ const SYNERGY_DEFS = [
 // Two towers are synergized if within this many grid tiles (Euclidean)
 const SYNERGY_RANGE = 2.5;
 
-function _towerBaseType(tower) {
-  return tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
-}
+// Use global getTowerBaseType() from utils.js
+const _towerBaseType = getTowerBaseType;
 
 // Called every frame in the game loop.
 // Recomputes which towers are synergized and stores pairs in state.synergies.

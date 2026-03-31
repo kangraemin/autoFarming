@@ -9,7 +9,7 @@ function createProjectile(tower, target, template) {
   spawnMuzzleFlash(muzzleX, muzzleY, template.projectileColor);
   if (tower.type === 'cannon') spawnSmoke(muzzleX, muzzleY);
   // Sound
-  if (typeof playTowerFire === 'function') playTowerFire(tower.fusedSpec ? tower.fusedSpec.baseType : tower.type);
+  if (typeof playTowerFire === 'function') playTowerFire(getTowerBaseType(tower));
 
   // Track barrel angle for cannon drawing
   tower.barrelAngle = angle;
@@ -21,7 +21,7 @@ function createProjectile(tower, target, template) {
     speed: template.projectileSpeed * CONFIG.GRID_SIZE,
     damage: tower.damage,
     color: tower.fusedSpec ? tower.fusedSpec.color : template.projectileColor,
-    towerType: tower.fusedSpec ? tower.fusedSpec.baseType : tower.type,
+    towerType: getTowerBaseType(tower),
     angle,
     splash: template.splash || 0,
     slow: template.slow || 0,

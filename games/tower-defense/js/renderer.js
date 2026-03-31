@@ -274,6 +274,10 @@ function drawTowers(ctx) {
     ctx.save();
     ctx.translate(x, y);
 
+    // Idle scale bob (phase offset per tower to avoid sync)
+    const scaleBob = 1 + 0.02 * Math.sin(state.gameTime * 1.5 + tower.col * 2.1 + tower.row * 3.7);
+    ctx.scale(scaleBob, scaleBob);
+
     // Synergy aura (drawn behind fused aura)
     drawSynergyAura(ctx, tower, gs);
 
@@ -298,7 +302,7 @@ function drawTowers(ctx) {
       ctx.setLineDash([]);
     }
 
-    const drawType = tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
+    const drawType = getTowerBaseType(tower);
     switch (drawType) {
       case 'arrow': drawArrowTower(ctx, gs, tower); break;
       case 'cannon': drawCannonTower(ctx, gs, tower); break;

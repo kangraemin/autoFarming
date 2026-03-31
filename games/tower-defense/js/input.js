@@ -188,7 +188,7 @@ function setupInput() {
 
 function showUpgradePopup(tower) {
   state.selectedPlacedTower = tower;
-  const baseTowerType = tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
+  const baseTowerType = getTowerBaseType(tower);
   const template = CONFIG.TOWER_TYPES[baseTowerType];
   const upgCost = template.upgradeCost(tower.level);
 
@@ -223,7 +223,31 @@ function showUpgradePopup(tower) {
     fusionEl.style.display = 'none';
   }
 
+  // Anchor popup near tower
+  const canvas = state.canvas;
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = rect.width / canvas.width;
+  const scaleY = rect.height / canvas.height;
+  const towerScreenX = rect.left + (tower.col * CONFIG.GRID_SIZE + CONFIG.GRID_SIZE / 2) * scaleX;
+  const towerScreenY = rect.top + (tower.row * CONFIG.GRID_SIZE) * scaleY;
+
+  const popupContent = document.querySelector('#upgrade-popup .popup-content');
+  const offsetY = 20; // px above tower
+  let px = towerScreenX;
+  let py = towerScreenY - offsetY;
+
+  // Clamp to viewport
+  popupContent.style.left = px + 'px';
+  popupContent.style.top = py + 'px';
   document.getElementById('upgrade-popup').classList.remove('hidden');
+
+  // Post-display clamp (need rendered size)
+  const popRect = popupContent.getBoundingClientRect();
+  if (popRect.left < 4) px += (4 - popRect.left);
+  if (popRect.right > window.innerWidth - 4) px -= (popRect.right - window.innerWidth + 4);
+  if (popRect.top < 4) py = towerScreenY + CONFIG.GRID_SIZE * scaleY + offsetY; // flip below
+  popupContent.style.left = px + 'px';
+  popupContent.style.top = py + 'px';
 }
 
 function closePopup() {

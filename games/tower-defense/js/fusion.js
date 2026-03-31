@@ -111,7 +111,7 @@ const FUSION_RECIPES = [
 
 // Returns fusion options available for a tower given current soul inventory
 function getFusionOptions(tower) {
-  const baseTowerType = tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
+  const baseTowerType = getTowerBaseType(tower);
   return FUSION_RECIPES.filter(r => {
     if (r.tower !== baseTowerType) return false;
     if (tower.fusedSpec && tower.fusedSpec.id === r.id) return false; // already this fusion
@@ -125,7 +125,7 @@ function performFusion(tower, recipeId) {
   if (!recipe) return false;
   if ((state.souls[recipe.soul] || 0) <= 0) return false;
 
-  const baseTowerType = tower.fusedSpec ? tower.fusedSpec.baseType : tower.type;
+  const baseTowerType = getTowerBaseType(tower);
   if (recipe.tower !== baseTowerType) return false;
 
   // Consume soul

@@ -112,7 +112,7 @@ function checkWaveEnd() {
     if (state.towers.length > 0) {
       const counts = {};
       for (const t of state.towers) {
-        const type = t.fusedSpec ? t.fusedSpec.baseType : t.type;
+        const type = getTowerBaseType(t);
         counts[type] = (counts[type] || 0) + 1;
       }
       mostUsedType = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
