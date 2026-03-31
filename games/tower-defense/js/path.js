@@ -16,7 +16,6 @@ function isOccupied(col, row) {
 }
 
 function getPathPosition(index) {
-  if (index < 0) return state.path[0];
-  if (index >= state.path.length) return state.path[state.path.length - 1];
+  if (index < 0 || index >= state.path.length) return null;
   return state.path[index];
 }

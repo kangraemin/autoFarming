@@ -1,19 +1,29 @@
-// Returns a summary of what enemies will appear in the given wave
-function getNextWavePreview(waveNum) {
+// Deterministic wave composition shared by preview and generation
+function _buildWaveComposition(waveNum) {
   const baseCount = 5 + waveNum * 2;
-  const counts = { basic: 0, fast: 0, tank: 0, boss: 0 };
+  const types = [];
 
   for (let i = 0; i < baseCount; i++) {
     if (waveNum % 5 === 0 && i === baseCount - 1) {
-      counts.boss++;
+      types.push('boss');
     } else if (waveNum >= 5 && i % 5 === 4) {
-      counts.tank++;
+      types.push('tank');
     } else if (waveNum >= 3 && i % 3 === 2) {
-      counts.fast++;
+      types.push('fast');
     } else {
-      counts.basic++;
+      types.push('basic');
     }
   }
+
+  return types;
+}
+
+// Returns a summary of what enemies will appear in the given wave
+function getNextWavePreview(waveNum) {
+  const types = _buildWaveComposition(waveNum);
+  const counts = { basic: 0, fast: 0, tank: 0, boss: 0 };
+
+  for (const t of types) counts[t]++;
 
   return Object.entries(counts)
     .filter(([, n]) => n > 0)
@@ -21,19 +31,13 @@ function getNextWavePreview(waveNum) {
 }
 
 function generateWave(waveNum) {
+  const types = _buildWaveComposition(waveNum);
   const enemies = [];
-  const baseCount = 5 + waveNum * 2;
   const hpScale = 1 + (waveNum - 1) * 0.3;
   const stageScale = STAGES[state.currentStageIndex].enemyScale || 1.0;
 
-  for (let i = 0; i < baseCount; i++) {
-    let type = 'basic';
-
-    if (waveNum >= 3 && Math.random() < 0.3) type = 'fast';
-    if (waveNum >= 5 && Math.random() < 0.2) type = 'tank';
-    if (waveNum % 5 === 0 && i === baseCount - 1) type = 'boss';
-
-    const enemy = createEnemy(type, i * 0.6);
+  for (let i = 0; i < types.length; i++) {
+    const enemy = createEnemy(types[i], i * 0.6);
     enemy.hp = Math.floor(enemy.hp * hpScale * stageScale);
     enemy.maxHp = enemy.hp;
     enemies.push(enemy);
@@ -88,9 +92,13 @@ function checkWaveEnd() {
   const allDead = state.enemies.every(e => !e.alive || e.reached);
   if (!allDead) return;
 
-  // Count leaked enemies
-  const leaked = state.enemies.filter(e => e.reached).length;
-  state.lives -= leaked;
+  // Deduct lives individually for each leaked enemy
+  for (let i = state.enemies.length - 1; i >= 0; i--) {
+    if (state.enemies[i].reached) {
+      state.lives--;
+      state.enemies.splice(i, 1);
+    }
+  }
 
   state.enemies = [];
   state.projectiles = [];
