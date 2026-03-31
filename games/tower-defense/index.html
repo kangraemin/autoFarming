@@ -8,6 +8,12 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-spinner"></div>
+    <p class="loading-text">Loading...</p>
+  </div>
+
   <!-- Stage Select Screen -->
   <div id="stage-select" class="stage-select-screen hidden">
     <div class="stage-select-content">
@@ -118,6 +124,7 @@
       <div class="overlay-content">
         <h2 id="overlay-title"></h2>
         <p id="overlay-text"></p>
+        <div id="overlay-stats" class="overlay-stats" style="display:none"></div>
         <button id="overlay-btn" class="action-btn">OK</button>
       </div>
     </div>

@@ -231,12 +231,23 @@ function closePopup() {
   document.getElementById('upgrade-popup').classList.add('hidden');
 }
 
-function showOverlay(title, text, btnText, action) {
+function showOverlay(title, text, btnText, action, stats) {
   document.getElementById('overlay-title').textContent = title;
   document.getElementById('overlay-text').textContent = text;
   const btn = document.getElementById('overlay-btn');
   btn.textContent = btnText;
   btn.dataset.action = action || '';
+
+  // Stats panel (game over only)
+  const statsEl = document.getElementById('overlay-stats');
+  if (stats) {
+    statsEl.innerHTML = stats;
+    statsEl.style.display = 'block';
+  } else {
+    statsEl.innerHTML = '';
+    statsEl.style.display = 'none';
+  }
+
   document.getElementById('overlay').classList.remove('hidden');
 }
 

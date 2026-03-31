@@ -62,6 +62,10 @@ function init() {
 
   requestAnimationFrame(gameLoop);
 
+  // Hide loading screen
+  const loadingEl = document.getElementById('loading-screen');
+  if (loadingEl) loadingEl.classList.add('hidden');
+
   // Show stage select on first load
   showStageSelect();
 }

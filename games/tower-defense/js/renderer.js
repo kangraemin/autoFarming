@@ -12,6 +12,8 @@ function resizeCanvas() {
   CONFIG.ROWS = Math.floor(availH / CONFIG.GRID_SIZE);
 
   state._bgDirty = true;
+  state._towerGlowCache = null;
+  state._fusedGlowCache = null;
 }
 
 // ── Map decorations ────────────────────────────────────────────────
@@ -177,6 +179,80 @@ function drawBush(ctx, cx, cy, gs) {
   }
 }
 
+// ── Tower glow cache (offscreen canvas, keyed by type+gridSize) ───
+function _getTowerGlowCache(type, gs) {
+  if (!state._towerGlowCache) state._towerGlowCache = {};
+  const key = type + '_' + gs;
+  if (state._towerGlowCache[key]) return state._towerGlowCache[key];
+
+  const s = gs * 0.45;
+  let cx, cy, radius, size, canvas, gCtx, grd;
+
+  if (type === 'ice') {
+    cx = s * 0.9 + 2;
+    cy = s * 0.9 + 2;
+    radius = s * 0.9;
+    size = Math.ceil(radius * 2) + 4;
+    canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    gCtx = canvas.getContext('2d');
+    grd = gCtx.createRadialGradient(cx, cy - s * 0.5 + s * 0.9 - cy + cy, 0, cx, cy, radius);
+    // Re-center: glow center at (0, -s*0.5) in tower coords → offset in cache
+    const offY = s * 0.5;
+    const ccx = size / 2;
+    const ccy = size / 2;
+    canvas.width = size; canvas.height = size;
+    gCtx = canvas.getContext('2d');
+    grd = gCtx.createRadialGradient(ccx, ccy, 0, ccx, ccy, radius);
+    grd.addColorStop(0, 'rgba(100,200,255,0.25)');
+    grd.addColorStop(1, 'rgba(100,200,255,0)');
+    gCtx.fillStyle = grd;
+    gCtx.beginPath(); gCtx.arc(ccx, ccy, radius, 0, Math.PI * 2); gCtx.fill();
+    state._towerGlowCache[key] = { canvas, radius, offsetX: 0, offsetY: -s * 0.5 };
+  } else if (type === 'lightning') {
+    radius = s * 0.8;
+    size = Math.ceil(radius * 2) + 4;
+    canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    gCtx = canvas.getContext('2d');
+    const ccx = size / 2;
+    const ccy = size / 2;
+    // Base glow (static part — alpha variation done at draw time via globalAlpha)
+    grd = gCtx.createRadialGradient(ccx, ccy, 0, ccx, ccy, radius);
+    grd.addColorStop(0, 'rgba(220,220,80,0.3)');
+    grd.addColorStop(1, 'rgba(220,220,80,0)');
+    gCtx.fillStyle = grd;
+    gCtx.beginPath(); gCtx.arc(ccx, ccy, radius, 0, Math.PI * 2); gCtx.fill();
+    state._towerGlowCache[key] = { canvas, radius, offsetX: 0, offsetY: -s * 0.6 };
+  }
+
+  return state._towerGlowCache[key];
+}
+
+function _getFusedGlowCache(color, gs) {
+  if (!state._fusedGlowCache) state._fusedGlowCache = {};
+  const key = color + '_' + gs;
+  if (state._fusedGlowCache[key]) return state._fusedGlowCache[key];
+
+  const auraR = gs * 0.62;
+  const size = Math.ceil(auraR * 2) + 4;
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const gCtx = canvas.getContext('2d');
+  const ccx = size / 2;
+  const ccy = size / 2;
+  const grd = gCtx.createRadialGradient(ccx, ccy, auraR * 0.2, ccx, ccy, auraR);
+  grd.addColorStop(0, color + '55');
+  grd.addColorStop(0.6, color + '22');
+  grd.addColorStop(1, 'transparent');
+  gCtx.fillStyle = grd;
+  gCtx.beginPath(); gCtx.arc(ccx, ccy, auraR, 0, Math.PI * 2); gCtx.fill();
+
+  const entry = { canvas, radius: auraR };
+  state._fusedGlowCache[key] = entry;
+  return entry;
+}
+
 // ── Towers ─────────────────────────────────────────────────────────
 function drawTowers(ctx) {
   const gs = CONFIG.GRID_SIZE;
@@ -201,18 +277,16 @@ function drawTowers(ctx) {
     // Synergy aura (drawn behind fused aura)
     drawSynergyAura(ctx, tower, gs);
 
-    // Fused tower glow aura (drawn behind tower)
+    // Fused tower glow aura (drawn behind tower, cached)
     if (tower.fusedSpec) {
       const fc = tower.fusedSpec.color;
       const t = state.gameTime;
       const pulse = Math.sin(t * 3) * 0.15 + 0.85;
-      const auraR = gs * 0.62 * pulse;
-      const auraGrd = ctx.createRadialGradient(0, 0, auraR * 0.2, 0, 0, auraR);
-      auraGrd.addColorStop(0, fc + '55');
-      auraGrd.addColorStop(0.6, fc + '22');
-      auraGrd.addColorStop(1, 'transparent');
-      ctx.fillStyle = auraGrd;
-      ctx.beginPath(); ctx.arc(0, 0, auraR, 0, Math.PI * 2); ctx.fill();
+      const auraR = gs * 0.62;
+      const fusedGlow = _getFusedGlowCache(fc, gs);
+      ctx.globalAlpha = pulse;
+      ctx.drawImage(fusedGlow.canvas, -fusedGlow.radius - 2, -fusedGlow.radius - 2);
+      ctx.globalAlpha = 1;
 
       // Spinning dashed ring
       ctx.strokeStyle = fc + 'bb';
@@ -325,12 +399,11 @@ function drawCannonTower(ctx, gs, tower) {
 function drawIceTower(ctx, gs, tower) {
   const s = gs * 0.45;
   const t = state.gameTime;
-  // Glow
-  const grd = ctx.createRadialGradient(0, -s * 0.5, 0, 0, -s * 0.5, s * 0.9);
-  grd.addColorStop(0, 'rgba(100,200,255,0.25)');
-  grd.addColorStop(1, 'rgba(100,200,255,0)');
-  ctx.fillStyle = grd;
-  ctx.beginPath(); ctx.arc(0, -s * 0.5, s * 0.9, 0, Math.PI * 2); ctx.fill();
+  // Glow (cached offscreen canvas)
+  const iceGlow = _getTowerGlowCache('ice', CONFIG.GRID_SIZE);
+  if (iceGlow) {
+    ctx.drawImage(iceGlow.canvas, -iceGlow.radius - 2 + iceGlow.offsetX, -iceGlow.radius - 2 + iceGlow.offsetY);
+  }
   // Base crystal cluster
   ctx.fillStyle = '#5588bb';
   ctx.beginPath(); ctx.roundRect(-s, -s * 0.1, s * 2, s * 1.1, 3); ctx.fill();
@@ -351,12 +424,14 @@ function drawIceTower(ctx, gs, tower) {
 function drawLightningTower(ctx, gs, tower) {
   const s = gs * 0.45;
   const t = state.gameTime;
-  // Electric glow
-  const grd = ctx.createRadialGradient(0, -s * 0.6, 0, 0, -s * 0.6, s * 0.8);
-  grd.addColorStop(0, `rgba(220,220,80,${0.2 + 0.1 * Math.sin(t * 8)})`);
-  grd.addColorStop(1, 'rgba(220,220,80,0)');
-  ctx.fillStyle = grd;
-  ctx.beginPath(); ctx.arc(0, -s * 0.6, s * 0.8, 0, Math.PI * 2); ctx.fill();
+  // Electric glow (cached offscreen canvas, alpha-modulated)
+  const ltGlow = _getTowerGlowCache('lightning', CONFIG.GRID_SIZE);
+  if (ltGlow) {
+    const glowAlpha = 0.67 + 0.33 * Math.sin(t * 8);
+    ctx.globalAlpha = glowAlpha;
+    ctx.drawImage(ltGlow.canvas, -ltGlow.radius - 2 + ltGlow.offsetX, -ltGlow.radius - 2 + ltGlow.offsetY);
+    ctx.globalAlpha = 1;
+  }
   // Metal base
   ctx.fillStyle = '#4a4a3a';
   ctx.beginPath(); ctx.roundRect(-s, -s * 0.1, s * 2, s * 1.1, 3); ctx.fill();

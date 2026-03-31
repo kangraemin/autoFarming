@@ -106,7 +106,24 @@ function checkWaveEnd() {
   if (state.lives <= 0) {
     state.lives = 0;
     state.phase = 'gameover';
-    showOverlay('Game Over', `${state.wave} 웨이브 생존\n점수: ${state.score}`, '스테이지 선택', 'gameover');
+    // Compute game over stats
+    const totalKills = state.towers.reduce((sum, t) => sum + t.kills, 0);
+    let mostUsedType = '-';
+    if (state.towers.length > 0) {
+      const counts = {};
+      for (const t of state.towers) {
+        const type = t.fusedSpec ? t.fusedSpec.baseType : t.type;
+        counts[type] = (counts[type] || 0) + 1;
+      }
+      mostUsedType = Object.entries(counts).sort((a, b) => b[1] - a[1])[0][0];
+      const tmpl = CONFIG.TOWER_TYPES[mostUsedType];
+      if (tmpl) mostUsedType = `${tmpl.icon} ${tmpl.name}`;
+    }
+    const statsHTML =
+      `<span class="stat-label">도달 웨이브</span> <span class="stat-value">${state.wave}</span><br>` +
+      `<span class="stat-label">총 처치</span> <span class="stat-value">${totalKills}</span><br>` +
+      `<span class="stat-label">최다 타워</span> <span class="stat-value">${mostUsedType}</span>`;
+    showOverlay('Game Over', `점수: ${state.score}`, '스테이지 선택', 'gameover', statsHTML);
     updateUI();
     return;
   }
