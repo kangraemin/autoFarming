@@ -4,7 +4,16 @@ function createParticle(x, y, vx, vy, color, life, size) {
   state.particles.push({ x, y, vx, vy, color, life, maxLife: life, size, alive: true });
 }
 
+function _scaledParticleCount(count) {
+  // 후반 웨이브에서 파티클 수 감소: wave 1-5 풀, 6-15 절반, 16+ 1/3
+  const w = state.wave || 1;
+  if (w <= 5) return count;
+  if (w <= 15) return Math.max(3, Math.ceil(count * 0.5));
+  return Math.max(2, Math.ceil(count * 0.33));
+}
+
 function spawnExplosion(x, y, color, count = 12) {
+  count = _scaledParticleCount(count);
   for (let i = 0; i < count; i++) {
     const angle = (Math.PI * 2 * i) / count + Math.random() * 0.5;
     const speed = 50 + Math.random() * 90;

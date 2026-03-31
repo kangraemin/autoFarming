@@ -34,6 +34,22 @@ body {
   transition: color 0.3s, text-shadow 0.3s;
 }
 
+.stat-primary {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.stat-gold {
+  color: #ffd700;
+  text-shadow: 0 0 6px rgba(255,215,0,0.4);
+}
+
+.stat-lives {
+  color: #ff6b6b;
+  text-shadow: 0 0 6px rgba(255,107,107,0.4);
+}
+
 .stat.lives-critical {
   color: #ff4444;
   animation: lives-pulse 0.6s ease-in-out infinite alternate;
