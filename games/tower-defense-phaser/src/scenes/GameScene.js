@@ -5,6 +5,7 @@ import { TOWER_TYPES } from '../config/TowerConfig.js';
 import TowerManager from '../entities/TowerManager.js';
 import EnemyManager from '../entities/EnemyManager.js';
 import WaveManager from '../entities/WaveManager.js';
+import ProjectileManager from '../entities/ProjectileManager.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -56,6 +57,7 @@ export default class GameScene extends Phaser.Scene {
     this.enemyManager = new EnemyManager(this);
     this.waveManager = new WaveManager(this, this.enemyManager);
     this.waveManager.setStage(this.stageIndex);
+    this.projectileManager = new ProjectileManager(this);
 
     // HUD
     this._createHUD();
@@ -103,26 +105,16 @@ export default class GameScene extends Phaser.Scene {
     // 적 업데이트
     this.enemyManager.update(dt);
 
-    // 타워 업데이트 → 타겟 반환
+    // 타워 업데이트 → 타겟 반환 → 투사체 발사
     const aliveEnemies = this.enemyManager.getAliveEnemies();
     const targets = this.towerManager.update(dt, aliveEnemies);
 
-    // 투사체 대신 즉시 데미지 (Phase 4에서 투사체 시스템 추가 예정)
     for (const { tower, target } of targets) {
-      const template = TOWER_TYPES[tower.towerType];
-      target.takeDamage(tower.damage);
-
-      if (!target.alive) {
-        tower.kills++;
-        this.gameState.gold += target.reward;
-        this.gameState.score += target.reward;
-      }
-
-      // 슬로우 효과
-      if (template.slow) {
-        target.applySlow(template.slow, template.slowDuration);
-      }
+      this.projectileManager.fire(tower, target);
     }
+
+    // 투사체 업데이트 (데미지/이펙트 처리 포함)
+    this.projectileManager.update(dt, aliveEnemies, this.gameState);
 
     // 웨이브 종료 체크
     const result = this.waveManager.checkWaveEnd(this.gameState);
@@ -341,6 +333,7 @@ export default class GameScene extends Phaser.Scene {
     btn.on('pointerdown', () => {
       this.towerManager?.destroy();
       this.enemyManager?.destroy();
+      this.projectileManager?.destroy();
       this.scene.start('StageSelectScene');
     });
   }

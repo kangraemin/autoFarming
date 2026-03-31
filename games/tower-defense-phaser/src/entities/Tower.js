@@ -92,20 +92,20 @@ export default class Tower extends Phaser.GameObjects.Container {
 
   findTarget(enemies) {
     const rangePx = this.range * GRID_SIZE;
-    let closest = null;
-    let closestDist = Infinity;
+    let best = null;
+    let highestPathIndex = -1;
 
     for (const enemy of enemies) {
       if (!enemy.alive || enemy.reached) continue;
       const dx = enemy.x - this.x;
       const dy = enemy.y - this.y;
       const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist <= rangePx && dist < closestDist) {
-        closest = enemy;
-        closestDist = dist;
+      if (dist <= rangePx && enemy.pathIndex > highestPathIndex) {
+        best = enemy;
+        highestPathIndex = enemy.pathIndex;
       }
     }
-    return closest;
+    return best;
   }
 
   update(dt, enemies) {
