@@ -87,7 +87,7 @@ export default class Tower extends Phaser.GameObjects.Container {
   }
 
   getSellRefund() {
-    return Math.floor(TOWER_TYPES[this.towerType].cost * 0.6);
+    return Math.floor(TOWER_TYPES[this.towerType].cost * 0.7);
   }
 
   findTarget(enemies) {
