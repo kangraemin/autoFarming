@@ -1,6 +1,10 @@
 import Phaser from 'phaser';
-import { GRID_SIZE, COLS, ROWS, GAME_WIDTH, GAME_HEIGHT } from '../config/GameConfig.js';
-import { STAGES, generatePathForStage } from '../config/StageConfig.js';
+import { GRID_SIZE, COLS, ROWS, GAME_WIDTH, GAME_HEIGHT, INITIAL_LIVES } from '../config/GameConfig.js';
+import { STAGES, generatePathForStage, getStageStars, saveStageProgress } from '../config/StageConfig.js';
+import { TOWER_TYPES } from '../config/TowerConfig.js';
+import TowerManager from '../entities/TowerManager.js';
+import EnemyManager from '../entities/EnemyManager.js';
+import WaveManager from '../entities/WaveManager.js';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -10,6 +14,15 @@ export default class GameScene extends Phaser.Scene {
   init(data) {
     this.stageIndex = data.stageIndex || 0;
     this.stage = STAGES[this.stageIndex];
+
+    this.gameState = {
+      gold: this.stage.startGold,
+      lives: INITIAL_LIVES,
+      score: 0,
+    };
+
+    this.selectedTowerType = 'arrow';
+    this.selectedTower = null;
   }
 
   create() {
@@ -38,11 +51,106 @@ export default class GameScene extends Phaser.Scene {
       this._drawMarker(path[path.length - 1], 0xff4444, 'END');
     }
 
+    // 매니저 초기화
+    this.towerManager = new TowerManager(this);
+    this.enemyManager = new EnemyManager(this);
+    this.waveManager = new WaveManager(this, this.enemyManager);
+    this.waveManager.setStage(this.stageIndex);
+
     // HUD
     this._createHUD();
 
+    // 타워 선택 UI
+    this._createTowerSelector();
+
     // 뒤로가기 버튼
     this._createBackButton();
+
+    // 그리드 클릭: 타워 배치
+    this.input.on('pointerdown', (pointer) => {
+      if (pointer.y < 36 || pointer.y > GAME_HEIGHT - 60) return; // HUD 영역 무시
+
+      const col = Math.floor(pointer.x / GRID_SIZE);
+      const row = Math.floor(pointer.y / GRID_SIZE);
+
+      // 기존 타워 선택
+      const existingTower = this.towerManager.getTowerAt(col, row);
+      if (existingTower) {
+        this._selectTower(existingTower);
+        return;
+      }
+
+      // 새 타워 배치
+      if (this.selectedTower) {
+        this._deselectTower();
+      }
+      const tower = this.towerManager.place(this.selectedTowerType, col, row, this.gameState);
+      if (tower) {
+        this._updateHUD();
+      }
+    });
+
+    // 웨이브 시작 버튼
+    this._createWaveButton();
+  }
+
+  update(time, delta) {
+    const dt = delta / 1000;
+
+    // 준비 단계 카운트다운
+    this.waveManager.updatePrep(dt, this.gameState, this.pathData);
+
+    // 적 업데이트
+    this.enemyManager.update(dt);
+
+    // 타워 업데이트 → 타겟 반환
+    const aliveEnemies = this.enemyManager.getAliveEnemies();
+    const targets = this.towerManager.update(dt, aliveEnemies);
+
+    // 투사체 대신 즉시 데미지 (Phase 4에서 투사체 시스템 추가 예정)
+    for (const { tower, target } of targets) {
+      const template = TOWER_TYPES[tower.towerType];
+      target.takeDamage(tower.damage);
+
+      if (!target.alive) {
+        tower.kills++;
+        this.gameState.gold += target.reward;
+        this.gameState.score += target.reward;
+      }
+
+      // 슬로우 효과
+      if (template.slow) {
+        target.applySlow(template.slow, template.slowDuration);
+      }
+    }
+
+    // 웨이브 종료 체크
+    const result = this.waveManager.checkWaveEnd(this.gameState);
+    if (result.ended) {
+      if (result.gameOver) {
+        this.scene.start('GameOverScene', {
+          stageIndex: this.stageIndex,
+          wave: this.waveManager.currentWave,
+          score: this.gameState.score,
+        });
+        return;
+      }
+      if (result.stageClear) {
+        const stars = getStageStars(this.gameState.lives);
+        saveStageProgress(this.stageIndex, stars);
+        this.scene.start('GameOverScene', {
+          stageIndex: this.stageIndex,
+          wave: this.waveManager.currentWave,
+          score: this.gameState.score,
+          stageClear: true,
+          stars,
+          lives: this.gameState.lives,
+        });
+        return;
+      }
+    }
+
+    this._updateHUD();
   }
 
   _drawGrid() {
@@ -63,13 +171,11 @@ export default class GameScene extends Phaser.Scene {
   _drawPath(path) {
     const pathGfx = this.add.graphics();
 
-    // 경로 타일 채우기
     pathGfx.fillStyle(0xddcc88, 0.25);
     for (const { col, row } of path) {
       pathGfx.fillRect(col * GRID_SIZE, row * GRID_SIZE, GRID_SIZE, GRID_SIZE);
     }
 
-    // 경로 중심선
     if (path.length < 2) return;
     pathGfx.lineStyle(2, 0xddcc88, 0.5);
     pathGfx.beginPath();
@@ -100,40 +206,141 @@ export default class GameScene extends Phaser.Scene {
   }
 
   _createHUD() {
-    const hudBg = this.add.graphics();
-    hudBg.fillStyle(0x000000, 0.5);
-    hudBg.fillRect(0, 0, GAME_WIDTH, 36);
+    this.hudBg = this.add.graphics();
+    this.hudBg.fillStyle(0x000000, 0.5);
+    this.hudBg.fillRect(0, 0, GAME_WIDTH, 36);
+    this.hudBg.setDepth(10);
 
-    this.add.text(10, 8, `Stage ${this.stageIndex + 1}: ${this.stage.name}`, {
-      fontSize: '16px',
-      color: '#e0c872',
-      fontFamily: 'Arial',
-      fontStyle: 'bold',
+    this.hudStage = this.add.text(10, 8, '', {
+      fontSize: '16px', color: '#e0c872', fontFamily: 'Arial', fontStyle: 'bold',
+    }).setDepth(10);
+
+    this.hudGold = this.add.text(GAME_WIDTH - 10, 8, '', {
+      fontSize: '16px', color: '#ffd700', fontFamily: 'Arial',
+    }).setOrigin(1, 0).setDepth(10);
+
+    this.hudWave = this.add.text(GAME_WIDTH / 2, 8, '', {
+      fontSize: '16px', color: '#aaaacc', fontFamily: 'Arial',
+    }).setOrigin(0.5, 0).setDepth(10);
+
+    this.hudLives = this.add.text(GAME_WIDTH - 200, 8, '', {
+      fontSize: '16px', color: '#ff6666', fontFamily: 'Arial',
+    }).setOrigin(1, 0).setDepth(10);
+
+    this._updateHUD();
+  }
+
+  _updateHUD() {
+    this.hudStage.setText(`Stage ${this.stageIndex + 1}: ${this.stage.name}`);
+    this.hudGold.setText(`Gold: ${this.gameState.gold}`);
+    this.hudWave.setText(`Wave: ${this.waveManager.currentWave}/${this.waveManager.getTotalWaves()}`);
+    this.hudLives.setText(`Lives: ${this.gameState.lives}`);
+  }
+
+  _createTowerSelector() {
+    const y = GAME_HEIGHT - 50;
+    const types = Object.keys(TOWER_TYPES);
+    const startX = GAME_WIDTH / 2 - (types.length * 70) / 2;
+
+    this.towerButtons = {};
+
+    types.forEach((type, i) => {
+      const x = startX + i * 70 + 35;
+      const template = TOWER_TYPES[type];
+
+      const btnBg = this.add.graphics().setDepth(10);
+      btnBg.fillStyle(type === this.selectedTowerType ? 0xe0c872 : 0x333355, 1);
+      btnBg.fillRoundedRect(x - 28, y - 18, 56, 36, 6);
+
+      const btnText = this.add.text(x, y - 4, template.icon, {
+        fontSize: '20px',
+      }).setOrigin(0.5).setDepth(10);
+
+      const costText = this.add.text(x, y + 12, `${template.cost}g`, {
+        fontSize: '10px',
+        color: type === this.selectedTowerType ? '#1a1a2e' : '#aaaaaa',
+        fontFamily: 'Arial',
+      }).setOrigin(0.5).setDepth(10);
+
+      const zone = this.add.zone(x, y, 56, 36).setInteractive({ useHandCursor: true }).setDepth(10);
+      zone.on('pointerdown', () => {
+        this._deselectTower();
+        this.selectedTowerType = type;
+        this._refreshTowerSelector();
+      });
+
+      this.towerButtons[type] = { btnBg, btnText, costText, x, y };
     });
+  }
 
-    this.add.text(GAME_WIDTH - 10, 8, `Gold: ${this.stage.startGold}`, {
-      fontSize: '16px',
-      color: '#ffd700',
-      fontFamily: 'Arial',
-    }).setOrigin(1, 0);
+  _refreshTowerSelector() {
+    for (const [type, btn] of Object.entries(this.towerButtons)) {
+      const isSelected = type === this.selectedTowerType;
+      btn.btnBg.clear();
+      btn.btnBg.fillStyle(isSelected ? 0xe0c872 : 0x333355, 1);
+      btn.btnBg.fillRoundedRect(btn.x - 28, btn.y - 18, 56, 36, 6);
+      btn.costText.setColor(isSelected ? '#1a1a2e' : '#aaaaaa');
+    }
+  }
 
-    this.add.text(GAME_WIDTH / 2, 8, `Waves: ${this.stage.waves}`, {
-      fontSize: '16px',
-      color: '#aaaacc',
-      fontFamily: 'Arial',
-    }).setOrigin(0.5, 0);
+  _selectTower(tower) {
+    this._deselectTower();
+    this.selectedTower = tower;
+    tower.showRange();
+  }
+
+  _deselectTower() {
+    if (this.selectedTower) {
+      this.selectedTower.hideRange();
+      this.selectedTower = null;
+    }
+  }
+
+  _createWaveButton() {
+    const x = GAME_WIDTH - 80;
+    const y = GAME_HEIGHT - 50;
+
+    this.waveBtnBg = this.add.graphics().setDepth(10);
+    this.waveBtnBg.fillStyle(0x44aa44, 1);
+    this.waveBtnBg.fillRoundedRect(x - 35, y - 16, 70, 32, 8);
+
+    this.waveBtnText = this.add.text(x, y, '▶ START', {
+      fontSize: '12px', color: '#ffffff', fontFamily: 'Arial', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(10);
+
+    const zone = this.add.zone(x, y, 70, 32).setInteractive({ useHandCursor: true }).setDepth(10);
+    zone.on('pointerdown', () => {
+      if (this.waveManager.phase === 'prep') {
+        const result = this.waveManager.startWave(true, this.gameState, this.pathData);
+        if (result.bonus > 0) {
+          const bonusText = this.add.text(GAME_WIDTH / 2, GAME_HEIGHT * 0.4, `+${result.bonus}g 조기시작!`, {
+            fontSize: '22px', color: '#ffd700', fontFamily: 'Arial', fontStyle: 'bold',
+            stroke: '#000000', strokeThickness: 3,
+          }).setOrigin(0.5).setDepth(20);
+
+          this.tweens.add({
+            targets: bonusText,
+            y: bonusText.y - 60,
+            alpha: 0,
+            duration: 1500,
+            onComplete: () => bonusText.destroy(),
+          });
+        }
+        this._updateHUD();
+      }
+    });
   }
 
   _createBackButton() {
     const btn = this.add.text(10, GAME_HEIGHT - 30, '← Back', {
-      fontSize: '14px',
-      color: '#aaaaaa',
-      fontFamily: 'Arial',
-    }).setInteractive({ useHandCursor: true });
+      fontSize: '14px', color: '#aaaaaa', fontFamily: 'Arial',
+    }).setInteractive({ useHandCursor: true }).setDepth(10);
 
     btn.on('pointerover', () => btn.setColor('#ffffff'));
     btn.on('pointerout', () => btn.setColor('#aaaaaa'));
     btn.on('pointerdown', () => {
+      this.towerManager?.destroy();
+      this.enemyManager?.destroy();
       this.scene.start('StageSelectScene');
     });
   }
