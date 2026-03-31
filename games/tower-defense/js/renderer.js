@@ -718,11 +718,9 @@ function drawIceProjectile(ctx, proj) {
 }
 
 function drawLightningProjectile(ctx, proj) {
-  // Animated electric bolt
-  ctx.strokeStyle = '#ffff44'; ctx.lineWidth = 2;
-  ctx.shadowColor = '#ffff00'; ctx.shadowBlur = 6;
+  // Animated electric bolt — bright stroke instead of shadowBlur
+  ctx.strokeStyle = '#ffff88'; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI * 2); ctx.stroke();
-  ctx.shadowBlur = 0;
   ctx.fillStyle = 'rgba(255,255,100,0.8)';
   ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
 }

@@ -68,6 +68,48 @@ function updateSoulDrops(rawDt) {
   state.soulDrops = state.soulDrops.filter(d => d.alive);
 }
 
+function _getSoulGlowCache(type, radius) {
+  if (!state._soulGlowCache) state._soulGlowCache = {};
+  const key = type + '_' + radius;
+  if (state._soulGlowCache[key]) return state._soulGlowCache[key];
+
+  const info = SOUL_TYPES[type];
+  const r = radius;
+  const outerR = r * 3.2;
+  const size = Math.ceil(outerR * 2) + 4;
+  const cx = size / 2;
+  const cy = size / 2;
+
+  // Outer glow canvas
+  const glowCanvas = document.createElement('canvas');
+  glowCanvas.width = size; glowCanvas.height = size;
+  const gCtx = glowCanvas.getContext('2d');
+  const grd = gCtx.createRadialGradient(cx, cy, 0, cx, cy, outerR);
+  grd.addColorStop(0, info.glow + 'aa');
+  grd.addColorStop(0.5, info.glow + '44');
+  grd.addColorStop(1, 'transparent');
+  gCtx.fillStyle = grd;
+  gCtx.beginPath(); gCtx.arc(cx, cy, outerR, 0, Math.PI * 2); gCtx.fill();
+
+  // Core orb canvas
+  const coreCanvas = document.createElement('canvas');
+  const coreSize = Math.ceil(r * 2) + 4;
+  const coreCx = coreSize / 2;
+  const coreCy = coreSize / 2;
+  coreCanvas.width = coreSize; coreCanvas.height = coreSize;
+  const cCtx = coreCanvas.getContext('2d');
+  const coreGrd = cCtx.createRadialGradient(coreCx - r * 0.3, coreCy - r * 0.3, 0, coreCx, coreCy, r);
+  coreGrd.addColorStop(0, '#ffffff');
+  coreGrd.addColorStop(0.3, info.color);
+  coreGrd.addColorStop(1, info.glow);
+  cCtx.fillStyle = coreGrd;
+  cCtx.beginPath(); cCtx.arc(coreCx, coreCy, r, 0, Math.PI * 2); cCtx.fill();
+
+  const entry = { glowCanvas, coreCanvas, outerR, r, size, coreSize };
+  state._soulGlowCache[key] = entry;
+  return entry;
+}
+
 function drawSoulDrops(ctx) {
   for (const drop of state.soulDrops) {
     const info = SOUL_TYPES[drop.type];
@@ -75,28 +117,21 @@ function drawSoulDrops(ctx) {
     const pulse = Math.sin(drop.pulse) * 0.28 + 0.72;
     const r = drop.radius * pulse;
 
+    const cache = _getSoulGlowCache(drop.type, drop.radius);
+
     ctx.save();
     ctx.globalAlpha = fadeAlpha;
 
-    // Outer glow
-    const grd = ctx.createRadialGradient(drop.x, drop.y, 0, drop.x, drop.y, r * 3.2);
-    grd.addColorStop(0, info.glow + 'aa');
-    grd.addColorStop(0.5, info.glow + '44');
-    grd.addColorStop(1, 'transparent');
-    ctx.fillStyle = grd;
-    ctx.beginPath();
-    ctx.arc(drop.x, drop.y, r * 3.2, 0, Math.PI * 2);
-    ctx.fill();
+    // Outer glow (from cached canvas, scaled by pulse)
+    const scale = pulse;
+    const glowW = cache.size * scale;
+    const glowH = cache.size * scale;
+    ctx.drawImage(cache.glowCanvas, drop.x - glowW / 2, drop.y - glowH / 2, glowW, glowH);
 
-    // Core orb gradient
-    const coreGrd = ctx.createRadialGradient(drop.x - r * 0.3, drop.y - r * 0.3, 0, drop.x, drop.y, r);
-    coreGrd.addColorStop(0, '#ffffff');
-    coreGrd.addColorStop(0.3, info.color);
-    coreGrd.addColorStop(1, info.glow);
-    ctx.fillStyle = coreGrd;
-    ctx.beginPath();
-    ctx.arc(drop.x, drop.y, r, 0, Math.PI * 2);
-    ctx.fill();
+    // Core orb (from cached canvas, scaled by pulse)
+    const coreW = cache.coreSize * scale;
+    const coreH = cache.coreSize * scale;
+    ctx.drawImage(cache.coreCanvas, drop.x - coreW / 2, drop.y - coreH / 2, coreW, coreH);
 
     // Orbit ring
     ctx.strokeStyle = info.color + 'cc';

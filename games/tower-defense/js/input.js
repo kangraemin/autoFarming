@@ -12,13 +12,9 @@ function setupInput() {
     if (typeof playUIClick === 'function') playUIClick();
   });
 
-  // Canvas click — targeting skill, collect soul, place tower or select existing
-  canvas.addEventListener('click', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Airstrike targeting mode — deliver skill on click
+  // Shared canvas input handler for click and touch
+  function handleCanvasInput(x, y) {
+    // Airstrike targeting mode — deliver skill
     if (state.targetingSkill) {
       const skillId = state.targetingSkill;
       state.targetingSkill = null;
@@ -52,6 +48,12 @@ function setupInput() {
       placeTower(state.selectedTower, col, row);
       updateUI();
     }
+  }
+
+  // Canvas click
+  canvas.addEventListener('click', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    handleCanvasInput(e.clientX - rect.left, e.clientY - rect.top);
   });
 
   // Canvas hover
@@ -71,39 +73,7 @@ function setupInput() {
     e.preventDefault();
     const touch = e.touches[0];
     const rect = canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
-
-    // Airstrike targeting mode
-    if (state.targetingSkill) {
-      const skillId = state.targetingSkill;
-      state.targetingSkill = null;
-      document.body.classList.remove('targeting-mode');
-      activateSkill(skillId, x, y);
-      return;
-    }
-
-    // Check soul orbs first
-    for (const drop of state.soulDrops) {
-      const dx = x - drop.x;
-      const dy = y - drop.y;
-      if (Math.sqrt(dx * dx + dy * dy) <= drop.radius * 2.5) {
-        collectSoul(drop);
-        return;
-      }
-    }
-
-    const col = Math.floor(x / CONFIG.GRID_SIZE);
-    const row = Math.floor(y / CONFIG.GRID_SIZE);
-
-    const existingTower = state.towers.find(t => t.col === col && t.row === row);
-    if (existingTower) {
-      showUpgradePopup(existingTower);
-      return;
-    }
-
-    placeTower(state.selectedTower, col, row);
-    updateUI();
+    handleCanvasInput(touch.clientX - rect.left, touch.clientY - rect.top);
   });
 
   // Start wave button
