@@ -992,6 +992,14 @@ function render() {
   drawPrepUI(ctx);
   drawAirstrikeTargeting(ctx);
 
+  // Close call red flash overlay
+  if (state.closeCallFlash > 0) {
+    ctx.fillStyle = `rgba(255, 30, 30, ${state.closeCallFlash * 0.35})`;
+    ctx.fillRect(-20, -20, state.canvas.width + 40, state.canvas.height + 40);
+    state.closeCallFlash *= 0.88;
+    if (state.closeCallFlash < 0.01) state.closeCallFlash = 0;
+  }
+
   ctx.restore();
 }
 

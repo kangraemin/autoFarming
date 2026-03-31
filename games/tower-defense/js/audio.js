@@ -164,6 +164,13 @@ function playEnemyHit() {
   playNoiseBurst(800, 'bandpass', 0.003, 0.06, 0.2);
 }
 
+function playLifeLost() {
+  if (!_sfxEnabled) return;
+  // Alarming descending buzz — life lost
+  playFreqSweep(400, 120, 'sawtooth', 0.3, 0.35);
+  playTone(180, 'square', 0.01, 0.25, 0.2);
+}
+
 function playEnemyDeath() {
   if (!_sfxEnabled) return;
   // Descending tone

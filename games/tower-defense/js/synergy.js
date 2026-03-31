@@ -50,7 +50,6 @@ const SYNERGY_DEFS = [
 const SYNERGY_RANGE = 2.5;
 
 // Use global getTowerBaseType() from utils.js
-const _towerBaseType = getTowerBaseType;
 
 // Called every frame in the game loop.
 // Recomputes which towers are synergized and stores pairs in state.synergies.
@@ -75,8 +74,8 @@ function computeSynergies() {
       const dy = a.row - b.row;
       if (Math.sqrt(dx * dx + dy * dy) > SYNERGY_RANGE) continue;
 
-      const typeA = _towerBaseType(a);
-      const typeB = _towerBaseType(b);
+      const typeA = getTowerBaseType(a);
+      const typeB = getTowerBaseType(b);
 
       for (const def of SYNERGY_DEFS) {
         if (
@@ -116,7 +115,7 @@ function applySynergyToProjectile(proj, tower) {
   const synergies = tower.activeSynergies;
   if (!synergies || synergies.length === 0) return;
 
-  const baseType = _towerBaseType(tower);
+  const baseType = getTowerBaseType(tower);
 
   // steam_burst — cannon: wider splash; ice: longer slow
   if (synergies.includes('steam_burst')) {

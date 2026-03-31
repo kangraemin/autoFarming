@@ -93,11 +93,20 @@ function checkWaveEnd() {
   if (!allDead) return;
 
   // Deduct lives individually for each leaked enemy
+  let leaked = 0;
   for (let i = state.enemies.length - 1; i >= 0; i--) {
     if (state.enemies[i].reached) {
       state.lives--;
+      leaked++;
       state.enemies.splice(i, 1);
     }
+  }
+
+  // Close call feedback — screen shake + red flash + sound
+  if (leaked > 0 && state.lives > 0) {
+    state.screenShake = Math.min(6 + leaked * 3, 18);
+    state.closeCallFlash = 0.45;
+    if (typeof playLifeLost === 'function') playLifeLost();
   }
 
   state.enemies = [];

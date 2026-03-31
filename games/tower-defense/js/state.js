@@ -12,6 +12,7 @@ const state = {
   particles: [],
   floatingTexts: [],
   screenShake: 0,
+  closeCallFlash: 0,
   path: [],
   pathSet: null,
   gridOccupied: null,
@@ -52,6 +53,7 @@ function initState() {
   state.particles = [];
   state.floatingTexts = [];
   state.screenShake = 0;
+  state.closeCallFlash = 0;
   state.selectedPlacedTower = null;
   state.gameTime = 0;
   state.souls = {};
