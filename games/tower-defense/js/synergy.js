@@ -186,10 +186,8 @@ function drawSynergyConnections(ctx) {
 
     ctx.save();
     ctx.strokeStyle = def.color;
-    ctx.lineWidth = 2.2;
-    ctx.globalAlpha = 0.48 + 0.22 * Math.sin(t * 2.8 + a.col);
-    ctx.shadowColor = def.color;
-    ctx.shadowBlur = 10;
+    ctx.lineWidth = 3.5;
+    ctx.globalAlpha = 0.38 + 0.18 * Math.sin(t * 2.8 + a.col);
     ctx.setLineDash([dashLen, gapLen]);
     ctx.lineDashOffset = -offset;
     ctx.beginPath();
@@ -214,11 +212,16 @@ function drawSynergyAura(ctx, tower, gs) {
   const r = gs * 0.5 + 3 + Math.sin(t * 3.5 + tower.col) * 2;
 
   ctx.save();
-  ctx.globalAlpha = 0.22 + 0.12 * Math.sin(t * 4);
+  // Outer ring
+  ctx.globalAlpha = 0.15 + 0.08 * Math.sin(t * 4);
   ctx.strokeStyle = def.color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, r + 2, 0, Math.PI * 2);
+  ctx.stroke();
+  // Inner ring
+  ctx.globalAlpha = 0.25 + 0.12 * Math.sin(t * 4);
   ctx.lineWidth = 2.5;
-  ctx.shadowColor = def.color;
-  ctx.shadowBlur = 12;
   ctx.beginPath();
   ctx.arc(0, 0, r, 0, Math.PI * 2);
   ctx.stroke();

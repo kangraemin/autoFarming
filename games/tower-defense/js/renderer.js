@@ -10,6 +10,8 @@ function resizeCanvas() {
 
   CONFIG.COLS = Math.floor(availW / CONFIG.GRID_SIZE);
   CONFIG.ROWS = Math.floor(availH / CONFIG.GRID_SIZE);
+
+  state._bgDirty = true;
 }
 
 // ── Map decorations ────────────────────────────────────────────────
@@ -879,8 +881,19 @@ function render() {
   ctx.save();
   if (shakeX || shakeY) ctx.translate(shakeX, shakeY);
 
-  drawBackground(ctx);
-  drawPath(ctx);
+  // Cached background (ground gradient + grid)
+  if (!state._bgCanvas || state._bgDirty) {
+    if (!state._bgCanvas) {
+      state._bgCanvas = document.createElement('canvas');
+    }
+    state._bgCanvas.width = state.canvas.width;
+    state._bgCanvas.height = state.canvas.height;
+    const bgCtx = state._bgCanvas.getContext('2d');
+    drawBackground(bgCtx);
+    drawPath(bgCtx);
+    state._bgDirty = false;
+  }
+  ctx.drawImage(state._bgCanvas, 0, 0);
   drawDecorations(ctx);
   drawHoverPreview(ctx);
   drawSynergyConnections(ctx);

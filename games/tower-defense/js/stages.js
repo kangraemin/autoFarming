@@ -309,6 +309,7 @@ function startStage(stageIdx) {
 
   generatePath();
   generateDecorations();
+  state._bgDirty = true;
   updateUI();
 
   document.getElementById('stage-label').textContent =

@@ -1,5 +1,6 @@
 // Particle system
 function createParticle(x, y, vx, vy, color, life, size) {
+  if (state.particles.length >= 200) return;
   state.particles.push({ x, y, vx, vy, color, life, maxLife: life, size, alive: true });
 }
 
@@ -105,9 +106,7 @@ function updateParticles(dt) {
     p.vx *= 0.92;
     p.vy *= 0.98;
   }
-  if (state.particles.length > 500) {
-    state.particles = state.particles.filter(p => p.alive);
-  }
+  state.particles = state.particles.filter(p => p.alive);
 
   for (const ft of state.floatingTexts) {
     ft.life -= dt;
