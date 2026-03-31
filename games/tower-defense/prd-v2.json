@@ -1,0 +1,337 @@
+{
+  "project": "Soul Tower Defense",
+  "engine": "Phaser 3 + Vite",
+  "description": "Kingdom Rush 수준 퀄리티의 타워 디펜스. 핵심 차별화: Tower Fusion (적 소울 흡수 → 타워 진화). Phaser 3 + 외부 에셋 사용.",
+  "assets": {
+    "tilemap": "kenney.nl/tower-defense-top-down (300 에셋, CC0)",
+    "towers": "Foozle Spire Tower Pack 1-4 (8종 타워, 공격/건설/임팩트 애니메이션)",
+    "enemies": "Foozle Spire Enemy Pack + free-game-assets monster sprites (10종+)",
+    "ui": "kenney.nl/ui-pack (430 에셋)",
+    "particles": "kenney.nl/particle-pack (80 에셋, 512x512)",
+    "sounds": "freesound.org + kenney.nl + sfxr.me 절차적 생성"
+  },
+  "stories": [
+    {
+      "id": "engine-setup",
+      "title": "Phaser 3 프로젝트 세팅 — npm create @phaserjs/game, Vite 빌드, 기본 씬 구조 (Boot→Preload→Menu→Game→GameOver). dev 서버 동작 확인.",
+      "acceptance": "npm run dev로 브라우저에서 Phaser 로고 또는 빈 씬이 뜬다. 빌드 에러 없음.",
+      "passes": false,
+      "priority": 0
+    },
+    {
+      "id": "asset-download",
+      "title": "에셋 다운로드 및 정리 — kenney tower-defense-top-down, Foozle Spire packs, kenney UI pack, kenney particle pack 다운로드. assets/ 폴더에 카테고리별 정리.",
+      "acceptance": "assets/tiles/, assets/towers/, assets/enemies/, assets/ui/, assets/particles/, assets/sounds/ 폴더에 파일 존재. Preload 씬에서 전부 로드 성공.",
+      "passes": false,
+      "priority": 0
+    },
+    {
+      "id": "map-tilemap",
+      "title": "타일맵 기반 맵 — Phaser Tilemap으로 맵 구성. kenney 타일 사용. 최소 3개 레이어 (지면, 경로, 장식). 나무/바위/풀/꽃 장식 오브젝트 최소 8종. 경로는 곡선 구간 포함.",
+      "acceptance": "맵이 단색 배경이 아닌 타일맵으로 구성됨. 장식 8종 이상 배치. 경로가 직각으로만 꺾이지 않고 곡선/대각선 구간 포함. 스크린샷에서 kenney 에셋이 확인됨.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "tower-sprites",
+      "title": "타워 스프라이트 — Foozle Spire 또는 kenney 에셋 사용. 4종 기본 타워 (Arrow, Cannon, Ice, Lightning). 각 타워에 idle 애니메이션 + 발사 애니메이션 프레임. 레벨업 시 외형 변화 최소 3단계. 무기 파트 분리하여 회전 가능.",
+      "acceptance": "타워가 코드로 그린 도형이 아닌 스프라이트. 발사 시 프레임 애니메이션 재생. Lv1/Lv2/Lv3 외형이 눈에 보이게 다름. 무기가 적 방향으로 회전.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "enemy-sprites",
+      "title": "적 스프라이트 — 최소 6종 (Goblin, Wolf, Golem, Dragon, Slime, Skeleton). 각 적에 걷기 애니메이션 (최소 4프레임). 사망 시 고유 사망 애니메이션. 속성별 색상 구분 (불=빨강, 얼음=파랑, 독=초록, 번개=노랑).",
+      "acceptance": "적이 원/사각형이 아닌 스프라이트. 이동 시 걷기 애니메이션 재생. 사망 시 사망 애니메이션 + 페이드아웃. 속성별 시각 구분 가능.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "fx-projectile",
+      "title": "투사체 이펙트 — 각 타워 타입별 고유 투사체 스프라이트 (화살, 포탄, 얼음결정, 번개볼트). 투사체에 꼬리 트레일 파티클. 캐논 발사 시 연기+반동. 착탄 시 타입별 임팩트 이펙트 (폭발, 얼음파편, 전기스파크).",
+      "acceptance": "투사체가 작은 원이 아닌 고유 스프라이트. 트레일 파티클 보임. 캐논은 연기 파티클. 착탄 시 파티클 이펙트가 타워 타입마다 다름.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "fx-kill",
+      "title": "처치 이펙트 — 적 사망 시: 파티클 폭발(최소 10개 파티클) + 골드 팝업 텍스트(+10g 스타일) + 골드 아이콘이 UI 골드 표시로 날아가는 애니메이션. 보스 사망 시: 큰 폭발 + 화면 흔들림(0.2초) + 스코어 팝업.",
+      "acceptance": "적 사망 시 파티클 10개 이상 방출. 골드 팝업 텍스트 표시 후 위로 올라가며 사라짐. 골드 아이콘 UI로 날아감. 보스 사망 시 화면 흔들림 체감됨.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "fx-placement",
+      "title": "배치 이펙트 — 타워 배치 시: 건설 애니메이션(0.5초, 아래에서 올라오기) + 배치 사운드 + 먼지 파티클. 업그레이드 시: 빛 기둥 이펙트 + 타워 변신 애니메이션(0.3초 스케일 펄스).",
+      "acceptance": "타워가 즉시 나타나지 않고 건설 애니메이션으로 등장. 업그레이드 시 시각 피드백 확인됨.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "soul-fusion",
+      "title": "Tower Fusion 시스템 — 적 사망 시 속성에 맞는 소울 오브 드롭 (빨/파/초/노 빛나는 구슬). 소울 클릭으로 수집. 소울 인벤토리 UI. 타워 선택 → 합성 버튼 → 타워 진화 애니메이션(1초, 빛폭발+변신). 최소 8가지 합성 조합. 도감 시스템.",
+      "acceptance": "소울 오브가 적 사망 위치에 나타나고 빛나며 떠다님. 클릭으로 수집됨. 합성 시 1초 진화 연출(빛+파티클+타워 외형 변화). 도감에서 발견/미발견 구분됨. 8가지 이상 조합 존재.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "gameplay-waves",
+      "title": "웨이브 시스템 — 웨이브 사이 준비 시간 카운트다운(15초). 다음 웨이브 적 미리보기(아이콘+숫자). 조기 시작 시 보너스 골드. 웨이브 시작 시 화면 상단에 'Wave X' 배너 애니메이션.",
+      "acceptance": "웨이브 사이 카운트다운 표시. 다음 웨이브 구성 미리보기 표시. 조기 시작 시 +골드 팝업. 웨이브 시작 배너 애니메이션 0.5초 이상.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "gameplay-stages",
+      "title": "스테이지 시스템 — 최소 5개 스테이지. 각각 다른 맵/경로 (직선, S자, 나선, 교차, 분기). 클리어 시 별 1~3개 (남은 체력 기반: 18+→3별, 6~17→2별, 1~5→1별). 별이 순차적으로 나타나는 리절트 화면. 스테이지 선택 화면에 맵 미리보기.",
+      "acceptance": "5개 스테이지 존재하고 각 맵이 시각적으로 다름. 클리어 시 별 순차 등장 애니메이션. 스테이지 선택 화면에서 맵 썸네일 보임. 잠긴 스테이지 표시.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "gameplay-skills",
+      "title": "액티브 스킬 3종 — 폭격(범위 데미지, 쿨다운 80초), 동결(전체 슬로우 3초, 쿨다운 60초), 치유(체력 5회복, 쿨다운 90초). 각 스킬에 고유 시각 이펙트(폭격=화면 떨어지는 미사일, 동결=화면 전체 파란 플래시, 치유=초록 하트). 쿨다운 UI(원형 게이지).",
+      "acceptance": "3개 스킬 버튼 있음. 각 스킬 사용 시 고유 이펙트 재생 1초 이상. 쿨다운 중 버튼에 원형 게이지 또는 숫자 표시. 스킬이 실제로 게임에 영향을 줌.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "gameplay-synergy",
+      "title": "타워 시너지 — 인접 2칸 이내 특정 타워 조합 시 보너스. 최소 4종: 불+얼음=증기폭발(범위), 번개+물=감전(DoT), 화살+화살=연사(공속+50%), 캐논+캐논=진동(적 슬로우). 시너지 활성 시 타워 사이에 빛줄기 연결 이펙트.",
+      "acceptance": "인접 타워 조합 시 시너지 효과 발동. 시너지 활성 타워 사이에 시각 연결선 보임. 4종 이상 시너지 존재. 효과가 게임플레이에 체감됨.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "sound-sfx",
+      "title": "효과음 — 최소 15종: 타워 발사음(4종, 타입별), 적 피격음(2종), 적 사망음(일반+보스), 골드 획득음, 타워 배치음, 타워 업그레이드음, 웨이브 시작 팡파레, 웨이브 클리어 팡파레, 스킬 사용음(3종), UI 클릭음, 소울 수집음, 합성 성공음. Web Audio API 또는 Phaser 사운드 매니저.",
+      "acceptance": "15종 이상 효과음이 각각 올바른 타이밍에 재생. 음량 조절 슬라이더 동작. 뮤트 버튼 동작. 동시 재생 시 소리가 겹치지 않고 정상 출력.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "sound-bgm",
+      "title": "배경음악 — 최소 2트랙: 준비 페이즈(차분한 루프), 웨이브 중(긴박한 루프). 보스 웨이브 시 BGM 변조 또는 별도 트랙. 씬 전환 시 페이드인/아웃(0.5초). 무료 BGM 소스 사용.",
+      "acceptance": "BGM이 재생됨. 준비/웨이브 페이즈에서 BGM이 다름. 씬 전환 시 페이드 효과. 볼륨 조절 가능.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "ui-menu",
+      "title": "메인 메뉴 — 게임 타이틀 로고, 시작 버튼, 스테이지 선택 버튼, 설정 버튼, 도감 버튼. kenney UI 에셋 사용. 버튼 호버 시 스케일 애니메이션(1.0→1.05). 클릭 시 눌리는 피드백.",
+      "acceptance": "메인 메뉴 씬 존재. 5개 이상 버튼. 버튼에 호버/클릭 애니메이션. UI가 코드로 그린 사각형이 아닌 에셋 기반.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "ui-hud",
+      "title": "인게임 HUD — 골드(아이콘+숫자), 체력(하트 아이콘+숫자), 웨이브(숫자/총웨이브), 스코어. 타워 선택 패널(하단, 아이콘+이름+비용, 선택 시 하이라이트). 속도 조절(1x/2x/3x). 일시정지. 전부 kenney UI 에셋.",
+      "acceptance": "HUD 요소가 게임 화면과 겹치지 않음. 아이콘이 에셋 기반. 타워 패널에서 비용 부족 시 비활성화 표시. 속도/일시정지 동작.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "ui-tower-popup",
+      "title": "타워 상세 팝업 — 타워 클릭 시: 타워 이름, 레벨, 데미지, 사거리, 공격속도, 킬 수. 업그레이드 버튼(비용 표시), 판매 버튼(환불액 표시), 합성 옵션(가능한 소울 표시). 사거리 원 표시.",
+      "acceptance": "타워 클릭 시 팝업 등장. 6개 이상 스탯 표시. 업그레이드/판매/합성 버튼 동작. 사거리 원 표시됨.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "ui-tutorial",
+      "title": "튜토리얼 — 첫 플레이 시 5단계 안내: 1)타워 선택 하이라이트 2)배치 위치 화살표 3)웨이브 시작 안내 4)업그레이드 안내 5)소울 합성 안내. 하이라이트+말풍선 방식. 강제 아닌 스킵 가능.",
+      "acceptance": "첫 플레이 시 튜토리얼 발동. 5단계 순차 진행. 해당 UI 요소에 하이라이트. 스킵 버튼 존재. 두 번째 플레이에는 안 나옴.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "progression",
+      "title": "프로그레션 — 스테이지 클리어 별로 새 타워/스킬 언락. 영구 업그레이드 트리 (별 소비): 기본 데미지+5%, 골드 획득+10%, 시작 골드+50 등 최소 10개 노드. 언락 알림 팝업.",
+      "acceptance": "별을 모아서 언락할 수 있는 항목 존재. 업그레이드 트리 화면. 언락 시 알림. 언락된 것이 다음 게임에 적용됨.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "monetization",
+      "title": "과금 요소 — 보석(프리미엄 재화). 광고 시청→보석 3개. 보석으로: 스킨 팩(타워 외형), 추가 소울 슬롯, 광고 제거(보석 50개). AdMob 배너(하단) + 보상형 광고(패배 시 컨티뉴) 자리.",
+      "acceptance": "보석 재화 존재하고 UI에 표시됨. 광고 시청 버튼(실제 AdMob 연동은 Capacitor 빌드 시). 보석 상점 화면. 구매 가능한 아이템 3종 이상.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "save-system",
+      "title": "세이브 — localStorage로 자동 저장. 저장 항목: 스테이지 클리어 기록, 별, 보석, 언락 타워/스킬, 도감, 업그레이드 트리, 튜토리얼 완료 여부. 세이브 슬롯 1개. 데이터 무결성 체크.",
+      "acceptance": "브라우저 새로고침 후 진행 상황 유지. 모든 저장 항목이 복원됨. localStorage에 JSON으로 저장됨을 개발자 도구에서 확인 가능.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "mobile-touch",
+      "title": "모바일 터치 — 터치 이벤트 완벽 지원. 버튼 최소 44px. 타워 배치 시 손가락 아래 미리보기(손가락에 가려지지 않게 오프셋). 맵 핀치줌 없음(맵이 화면에 맞춤). 햅틱 피드백(Capacitor).",
+      "acceptance": "모바일 브라우저에서 모든 조작 가능. 터치 타겟 44px 이상. 타워 배치 시 오프셋 미리보기 동작. 데스크탑과 동일한 기능.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "mobile-build",
+      "title": "Capacitor 빌드 — Android/iOS 빌드. capacitor.config.ts, 앱 아이콘(1024x1024 + 리사이즈), 스플래시 스크린, 상태바 설정. npx cap sync && npx cap open android 동작.",
+      "acceptance": "npx cap sync 에러 없음. Android Studio에서 프로젝트 열림. 에뮬레이터에서 게임 동작.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "performance",
+      "title": "퍼포먼스 — 60fps 유지 조건: 적 50마리 + 타워 20개 + 투사체 30개 + 파티클 100개 동시. Phaser 오브젝트 풀링 사용. 텍스처 아틀라스로 드로우콜 최소화. 모바일에서도 30fps 이상.",
+      "acceptance": "Phaser debug 오버레이에서 fps 확인. 위 조건에서 데스크탑 60fps, 모바일 30fps 이상. 오브젝트 풀링 코드 존재.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "polish-transitions",
+      "title": "폴리싱 — 씬 전환 페이드(0.3초). 버튼 호버/클릭 스케일 트윈. 로딩 화면(프로그레스 바). favicon. OG 이미지(1200x630). 메타 태그(title, description). 게임 오버 화면에 최고 기록 표시.",
+      "acceptance": "씬 전환 시 페이드 효과. 버튼에 트윈 애니메이션. 로딩 프로그레스 바. favicon 존재. OG 이미지 존재. 게임 오버에 최고 기록.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "balance-tower-economy",
+      "title": "타워 경제 밸런스 — 타워별 DPS/골드 효율: Arrow(가성비 1등, DPS/골드=0.2), Cannon(범위딜 특화, 단일 DPS는 Arrow보다 낮지만 3마리 이상이면 효율 역전), Ice(딜 최하, 슬로우 유틸로 가치), Lightning(DPS/골드 최고지만 비쌈). 어떤 타워도 '무조건 정답'이 아닌 상황별 선택.",
+      "acceptance": "Arrow만 스팸해서 웨이브 10 이후 클리어 불가능. Cannon이 밀집 적에서 Arrow보다 효율 좋음. Ice 없이 빠른 적(Wolf) 웨이브 돌파 어려움. 타워 4종 모두 특정 상황에서 최선.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "balance-enemy-scaling",
+      "title": "적 HP/스피드 스케일링 — 웨이브별 적 HP = base * (1 + 0.25 * wave). 스피드는 고정(타입별). Goblin(HP30/속도1.5), Wolf(HP20/속도3.0), Golem(HP100/속도0.8), Dragon(HP300/속도1.0), Slime(HP40/속도1.2/분열), Skeleton(HP25/속도2.0/부활1회). 웨이브 10에서 적 HP가 웨이브 1의 3.5배. 웨이브 20에서 6배.",
+      "acceptance": "웨이브 1 Goblin HP=30, 웨이브 10 Goblin HP=105, 웨이브 20 Goblin HP=180. 스케일링이 선형이 아닌 느린 곡선으로 초반 쉽고 후반 어려움. 코드에서 수치 확인 가능.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "balance-gold-flow",
+      "title": "골드 수입/지출 밸런스 — 시작 골드 100(Arrow 2개 가능). 웨이브 1 적 처치 총 골드 ~70. 웨이브 클리어 보너스 = wave * 15. 웨이브 5까지 누적 골드로 타워 5~6개 배치 가능해야 함. 웨이브 10까지 첫 레벨3 업그레이드 가능. 골드가 넘치지도 부족하지도 않는 긴장감.",
+      "acceptance": "웨이브 5 시점에서 평균 타워 5~6개 (테스트 3회 평균). 웨이브 10에서 레벨3 타워 1~2개. 항상 '다음 타워 살까 업그레이드할까' 고민이 존재. 골드가 500 이상 쌓이는 상황 없음(밸런스 깨짐).",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "balance-difficulty-curve",
+      "title": "난이도 커브 — 웨이브 1~3: 튜토리얼 난이도. Arrow 2개로 클리어 가능. 웨이브 4~6: 두 번째 타워 타입 필요. 웨이브 7~9: 업그레이드 필수. 웨이브 10: 첫 보스, 스킬 사용 유도. 웨이브 11~15: 소울 합성 필요. 웨이브 16~20: 시너지+합성+스킬 종합 활용. 첫 패배 예상 지점: 웨이브 8~12 (초보), 웨이브 15~20 (숙련).",
+      "acceptance": "Arrow 2개만으로 웨이브 3 클리어 가능. 웨이브 10에 보스 등장. 타워 1종만 스팸으로는 웨이브 8 이후 불가능. 스킬 없이 웨이브 10 보스 처치 매우 어려움. 코드의 웨이브 구성 테이블에서 확인 가능.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "pacing-onboarding",
+      "title": "온보딩 페이싱 — 첫 킬: 게임 시작 30초 이내. 첫 타워 배치: 5초 이내(튜토리얼 유도). 첫 업그레이드: 웨이브 2~3 사이. 첫 소울 드롭: 웨이브 2 (속성 적 첫 등장). 첫 합성: 웨이브 4~5 (소울 2개 모임). 첫 스킬 사용: 웨이브 5~6 (어려워지는 시점). 첫 시너지 발견: 웨이브 6~8.",
+      "acceptance": "위 타이밍이 코드에 반영됨. 속성 적은 웨이브 2부터 등장. 소울 드롭률은 속성 적 사망 시 100%(초반 확정). 스킬은 웨이브 5 시작 시 언락 알림. 시너지는 타워 4개+ 배치 시 힌트 표시.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "pacing-session",
+      "title": "세션 페이싱 — 스테이지 1 클리어 시간: 5~8분 (20 웨이브). 웨이브 당 평균 소요 시간: 15~25초. 웨이브 간 준비 시간: 15초(조기 시작 가능). 전체 5스테이지 풀 클리어: 40~60분. '한 판만 더' 충동이 오는 구조.",
+      "acceptance": "스테이지 1이 20 웨이브. 1x 속도에서 5~8분 내 클리어 가능. 웨이브 준비 시간 15초. 게임 오버 시 즉시 재시작 가능(로딩 없음).",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "pacing-unlock",
+      "title": "언락 페이싱 — 스테이지 1 클리어: 타워 'Cannon' 언락. 별 5개 모음: 스킬 '동결' 언락. 별 10개: 타워 'Lightning' 언락. 별 15개: 스킬 '치유' 언락. 첫 합성 발견: 도감 피드백. 모든 합성 발견: 특별 칭호. 항상 '다음 목표'가 보여야 함.",
+      "acceptance": "게임 시작 시 Arrow+Ice만 사용 가능. 스테이지 클리어/별 수집으로 나머지 언락. 언락 알림 팝업 표시. 스테이지 선택 화면에서 다음 언락 조건 표시.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "balance-fusion",
+      "title": "소울 합성 밸런스 — 합성 타워가 기본 타워보다 항상 강하되, 만능은 아님. Fire Arrow(DPS+50%, 단일 특화), Frost Bomb(범위+슬로우, DPS는 낮음), Thunder Ice(감전+슬로우, 느린 공격속도), 보스 변이 타워(DPS+100%, 스테이지 당 1회만 가능). 합성 비용: 소울 1개. 소울 드롭률: 속성 적 100%, 일반 적 20%.",
+      "acceptance": "합성 타워 스탯이 기본 대비 정확히 정의됨. 보스 변이 타워가 1회 제한. 합성 타워끼리 시너지는 불가(밸런스). 소울 드롭률이 코드에서 확인 가능.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "balance-star-rating",
+      "title": "별점 밸런스 — 3별: 체력 18+ (체력 거의 안 잃음 = 최적 플레이). 2별: 체력 6~17 (보통 플레이). 1별: 체력 1~5 (겨우 클리어). 3별 난이도: 숙련자도 2~3번 시도 필요. 1별은 첫 시도에 가능. 별점 기준이 스테이지마다 동일.",
+      "acceptance": "웨이브 20 기준 체력 18+ 달성하려면 소울 합성 + 시너지 활용 필수. 타워만 배치해서는 2별까지. 별점 계산 로직이 코드에서 확인 가능.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "replayability",
+      "title": "리플레이 요소 — 같은 스테이지라도 소울 합성 조합에 따라 다른 전략. 도감 100% 도전. 3별 올클리어 도전. 웨이브 구성에 15% 랜덤 변동(같은 웨이브도 매번 조금 다름). 기록 갱신 동기(최고 웨이브, 최고 스코어, 최소 타워 클리어).",
+      "acceptance": "동일 스테이지 2회 플레이 시 웨이브 구성이 약간 다름. 기록 화면에 최고 웨이브/스코어/타워 수 표시. 도감 진행률 표시(8/12 조합 발견 등).",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "wave-table",
+      "title": "웨이브 구성 테이블 (스테이지 1, 20웨이브) — Wave1: Goblin×5. Wave2: Goblin×6+Wolf×2. Wave3: Goblin×7+Wolf×3. Wave4: Goblin×5+Wolf×3+🔴FireGoblin×2(첫 속성적, 소울 확정). Wave5: Wolf×8+FireGoblin×3(Ice필요체감). Wave6: Goblin×8+🔵IceWolf×3+Wolf×4. Wave7: Golem×2+Goblin×6+FireGoblin×3. Wave8: Wolf×10+IceWolf×4+🟢PoisonSlime×2(첫 분열적). Wave9: Golem×3+Skeleton×5+FireGoblin×4. Wave10: Goblin×10+Wolf×5+Golem×3+🐉DragonBoss(첫보스). Wave11: Skeleton×8+PoisonSlime×4+IceWolf×3. Wave12: Golem×5+FireGoblin×6+⚡ThunderSkeleton×3. Wave13: Wolf×12+PoisonSlime×5+Skeleton×4. Wave14: Golem×4+ThunderSkeleton×4+IceWolf×5. Wave15: 전타입혼합×30+MiniBoss(Golem강화). Wave16: Skeleton×10+PoisonSlime×6+FireGoblin×5+ThunderSkeleton×3. Wave17: Wolf×15+IceWolf×6+Golem×3. Wave18: 전타입혼합×35+MiniBoss×2. Wave19: Golem×6+ThunderSkeleton×5+PoisonSlime×8. Wave20: 전타입혼합×30+🐉DragonBoss×2(최종).",
+      "acceptance": "코드에 20웨이브 구성이 위 테이블대로 하드코딩 또는 생성 로직으로 존재. 속성 적 첫 등장 시점이 Wave4. 보스 등장이 Wave10, Wave20. 적 수가 웨이브마다 점진적 증가.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "tower-upgrade-spec",
+      "title": "타워 업그레이드 스펙 테이블 — Arrow: Lv1(DMG10,Range3,Rate1.0/s,Cost50) → Lv2(DMG18,Range3.5,Rate1.2/s,UpgCost75) → Lv3(DMG30,Range4.0,Rate1.5/s,UpgCost120) → Lv4(DMG45,Range4.5,Rate1.8/s,UpgCost200). Cannon: Lv1(DMG30,Splash1.2,Range2.5,Rate0.5/s,Cost100) → Lv2(DMG50,Splash1.4,Range3.0,Rate0.6/s,UpgCost150) → Lv3(DMG80,Splash1.6,Range3.5,Rate0.7/s,UpgCost250) → Lv4(DMG120,Splash2.0,Range4.0,Rate0.8/s,UpgCost400). Ice: Lv1(DMG5,Slow50%/2s,Range2.5,Rate0.8/s,Cost75) → Lv2(DMG8,Slow60%/2.5s,Range3.0,Rate1.0/s,UpgCost100) → Lv3(DMG12,Slow70%/3s,Range3.5,Rate1.2/s,UpgCost175) → Lv4(DMG18,Slow80%/3.5s,Range4.0,Rate1.5/s,UpgCost300). Lightning: Lv1(DMG20,Chain2,Range3.5,Rate1.2/s,Cost150) → Lv2(DMG35,Chain3,Range4.0,Rate1.4/s,UpgCost200) → Lv3(DMG55,Chain4,Range4.5,Rate1.6/s,UpgCost350) → Lv4(DMG80,Chain5,Range5.0,Rate1.8/s,UpgCost550). 판매 시 총 투자액의 60% 환불.",
+      "acceptance": "코드에 위 수치 테이블이 config로 존재. 업그레이드 비용이 점진적 증가. Lv4 총 비용: Arrow=445, Cannon=900, Ice=650, Lightning=1250. 판매 환불 60%. 코드에서 수치 직접 확인 가능.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "boss-patterns",
+      "title": "보스 패턴 설계 — DragonBoss: HP=300*wave_scale, 속도1.0. Phase1(HP100~51%): 일반이동, 3초마다 화염브레스(전방 부채꼴 범위, 인접 타워에 50% 데미지감소 디버프 3초). Phase2(HP50~26%): 소환(Goblin×3 스폰, 30초 쿨다운), 이동속도 1.2배. Phase3(HP25%이하): 돌진(이동속도 2.5배, 3초간, 60초 쿨다운), 주변 타워 사거리 30% 감소 오라. 처치 시: 보스 소울 확정 드롭, 화면 흔들림 0.5초, 대형 폭발 이펙트, 보너스 골드 100. MiniBoss(Wave15,18): HP=150*wave_scale, 속도0.6. 주변 아군 적에게 HP재생(초당 2%) 오라. 처치 시 소울 50% 드롭.",
+      "acceptance": "보스가 3페이즈 패턴 보유. 화염브레스/소환/돌진이 코드에 구현됨. HP 비율에 따라 페이즈 전환됨. 보스 소울 확정 드롭. MiniBoss 오라 효과 작동.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "stage-gimmicks",
+      "title": "스테이지별 고유 기믹 — Stage1(초원): 기본맵, 기믹 없음(튜토리얼). Stage2(숲): 안개 지역(사거리 50% 감소 구간), 나무 장애물로 타워 배치 제한 구간. Stage3(화산): 용암 타일(적이 밟으면 DoT, 타워 배치 불가), 간헐천(5초마다 범위 데미지). Stage4(설산): 빙판(적 이동속도 +30%), 눈보라(15초마다 전체 시야 감소 3초). Stage5(성): 분기 경로 2갈래(적이 랜덤 선택), 성벽 타일(타워 사거리 +20% 고지대).",
+      "acceptance": "5스테이지 각각 고유 기믹이 코드에 구현됨. 기믹이 시각적으로 표현됨(용암 타일 빨간색, 빙판 파란색 등). 기믹이 게임플레이에 실제 영향.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "enemy-attribute-types",
+      "title": "속성 적 정의 — 6종 기본적 + 4종 속성 변형: 🔴FireGoblin(HP35,속도1.5,화상면역,처치시Fire소울드롭), 🔵IceWolf(HP25,속도2.5,슬로우면역,처치시Ice소울드롭), 🟢PoisonSlime(HP40,속도1.2,사망시 2마리로 분열(각HP20),처치시Poison소울드롭), ⚡ThunderSkeleton(HP30,속도2.0,사망시1회부활(HP50%),처치시Thunder소울드롭). 소울 타입: Fire(빨강), Ice(파랑), Poison(초록), Thunder(노랑), Boss(보라). 속성면역: 해당 속성 타워에 데미지 70% 감소.",
+      "acceptance": "4종 속성 적이 코드에 정의됨. 각 속성 적이 고유 소울 드롭. 속성면역이 작동(Fire적이 Fire Arrow에 70% 데미지 감소). Slime 분열 작동. Skeleton 부활 작동.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "fusion-recipe-table",
+      "title": "합성 레시피 테이블 — 8종 + 보스 변이 4종 = 12종 합성: Arrow+Fire소울=FireArrow(DMG×1.5,화상DoT초당5,3초), Arrow+Ice소울=FrostArrow(DMG×1.2,슬로우40%추가), Arrow+Thunder소울=ShockArrow(DMG×1.3,체인+1추가), Arrow+Poison소울=VenomArrow(DMG×1.1,독DoT초당8,4초). Cannon+Fire소울=MagmaCannon(DMG×1.4,착탄지점에용암장판3초), Cannon+Ice소울=FrostBomb(Splash×1.5,범위슬로우60%). Ice+Thunder소울=AbsoluteZero(10초마다사거리내전체동결2초). Lightning+Fire소울=Inferno(DMG×1.5,체인대상에화상). Arrow+Boss소울=PhoenixArcher(DMG×2,부활공격:처치한적을1초간아군화), Cannon+Boss소울=DragonCannon(DMG×2.5,Splash×2), Ice+Boss소울=Blizzard(사거리내영구슬로우30%오라), Lightning+Boss소울=Judgment(15초마다맵전체적에DMG×0.5).",
+      "acceptance": "12종 합성 레시피가 코드에 존재. 각 합성 타워의 스탯/효과가 정의대로 작동. 도감에 12종 표시. 보스 변이 타워가 스테이지당 1회 제한.",
+      "passes": false,
+      "priority": 1
+    },
+    {
+      "id": "monetization-detail",
+      "title": "과금 로직 상세 — 보석(Gem) 재화. 획득: 광고 시청=3보석, 스테이지 첫 3별 클리어=5보석, 도감 합성 발견=2보석, 일일 접속=1보석. 소비: 광고 제거=50보석(영구), 타워 스킨팩(5종)=각 15보석, 추가 소울 슬롯(기본3→4→5)=각 20보석, 패배 시 컨티뉴=5보석, 즉시 웨이브스킵(준비시간0)=1보석. 보석 IAP: 10보석=$0.99, 30보석=$1.99, 100보석=$4.99. AdMob: 하단 배너(인게임 외), 보상형 광고(보석획득+패배시컨티뉴). 첫 3스테이지는 광고 없음(온보딩).",
+      "acceptance": "보석 재화가 UI에 표시. 5가지 이상 보석 획득 경로. 6가지 이상 보석 소비처. IAP 가격 테이블 코드에 존재. 광고 자리(배너+보상형) UI에 확보. 첫 3스테이지 광고 없음.",
+      "passes": false,
+      "priority": 3
+    },
+    {
+      "id": "auto-balance-test",
+      "title": "자동 밸런스 시뮬레이션 — Node.js 스크립트(test/simulate.js)로 게임 로직을 headless로 실행. 시나리오: 1)Arrow만2개로Wave3클리어가능확인 2)타워1종스팸으로Wave10이후실패확인 3)최적빌드로Wave20클리어가능확인 4)골드가500이상안쌓이는지확인 5)Wave10보스스킬없이처치매우어려움확인. 스크립트가 시나리오별 PASS/FAIL 출력.",
+      "acceptance": "test/simulate.js 실행 시 5개 시나리오 결과 출력. 모든 시나리오 PASS. 스크립트가 게임 config의 수치를 직접 참조(하드코딩 아님). npm run test:balance로 실행 가능.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "analytics-tracking",
+      "title": "유저 행동 추적 — PostHog 또는 자체 localStorage 이벤트 로그. 추적 항목: 스테이지 시작/클리어/실패, 실패 웨이브 번호, 사용한 타워 종류별 배치 횟수, 합성 횟수, 스킬 사용 횟수, 세션 시간, 보석 획득/소비. 데이터는 로컬 저장 + 선택적 원격 전송.",
+      "acceptance": "localStorage에 이벤트 로그 JSON 배열 저장됨. 최소 8종 이벤트 추적. 개발자 도구에서 로그 확인 가능. 향후 Ralph Loop 개선에 활용 가능한 구조.",
+      "passes": false,
+      "priority": 2
+    },
+    {
+      "id": "share-viral",
+      "title": "공유/바이럴 기능 — 스테이지 클리어 시 결과 카드 이미지 생성(스코어, 별, 사용 타워, 클리어 시간). 공유 버튼(Web Share API → 트위터/카톡/링크복사). OG 이미지로 링크 미리보기. '내 기록 자랑하기' 동기 부여.",
+      "acceptance": "클리어 화면에 공유 버튼. 결과 카드 이미지 생성(캔버스→PNG). Web Share API 동작(미지원 브라우저는 링크 복사 fallback). OG 메타태그 존재.",
+      "passes": false,
+      "priority": 3
+    }
+  ]
+}
